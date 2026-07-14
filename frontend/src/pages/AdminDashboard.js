@@ -319,9 +319,9 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
       <header className="bg-white shadow-md relative z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-800 text-center sm:text-left">Admin Dashboard</h1>
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto">
             <span className="text-gray-600">Welcome, {user?.employee_name}</span>
             <button
               onClick={() => setShowProfileModal(true)}
@@ -456,7 +456,7 @@ const AdminDashboard = () => {
         {activeTab === 'overview' && (
           <div>
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <div className="bg-white p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Users className="w-5 h-5 text-blue-600" />
@@ -490,7 +490,7 @@ const AdminDashboard = () => {
             {/* Quick Actions */}
             <div className="bg-white rounded-xl shadow-md p-6">
               <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <button
                   onClick={() => setActiveTab('employees')}
                   className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50"
@@ -524,7 +524,7 @@ const AdminDashboard = () => {
               <h2 className="text-xl font-semibold mb-4">
                 {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
               </h2>
-              <form onSubmit={handleEmployeeSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <form onSubmit={handleEmployeeSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                   <input
@@ -596,7 +596,7 @@ const AdminDashboard = () => {
                     <option value="admin">Admin</option>
                   </select>
                 </div>
-                <div className="md:col-span-2 flex gap-2">
+                <div className="sm:col-span-2 lg:col-span-3 flex gap-2">
                   <button
                     type="submit"
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
@@ -629,10 +629,10 @@ const AdminDashboard = () => {
 
             {/* Employees Table */}
             <div className="bg-white rounded-xl shadow-md overflow-visible">
-              <div className="p-6 border-b flex flex-col md:flex-row justify-between items-center gap-4">
-                <h2 className="text-xl font-semibold">All Employees</h2>
-                <div className="flex flex-1 w-full md:w-auto gap-4 justify-end">
-                  <div className="relative flex-1 max-w-xs">
+              <div className="p-6 border-b flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+                <h2 className="text-xl font-semibold text-center lg:text-left">All Employees</h2>
+                <div className="flex flex-col sm:flex-row flex-1 w-full lg:w-auto gap-3 justify-end items-stretch sm:items-center">
+                  <div className="relative w-full sm:max-w-xs">
                     <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
                     <input 
                       type="text"
@@ -645,7 +645,7 @@ const AdminDashboard = () => {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="border rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:border-blue-500"
+                    className="border rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 w-full sm:w-auto"
                   >
                     <option value="all">All Status</option>
                     <option value="online">Online</option>
@@ -654,7 +654,7 @@ const AdminDashboard = () => {
                   </select>
                   <button
                     onClick={() => exportToCSV(filteredEmployees, 'employees.csv')}
-                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm whitespace-nowrap"
+                    className="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm whitespace-nowrap w-full sm:w-auto font-semibold"
                   >
                     <Download className="w-4 h-4" />
                     Export
@@ -902,7 +902,7 @@ const AdminDashboard = () => {
           <div>
             <div className="bg-white rounded-xl shadow-md p-6 mb-8">
               <h2 className="text-xl font-semibold mb-4">Assign New Task</h2>
-              <form onSubmit={handleTaskSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={handleTaskSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Employee</label>
                   <select
@@ -927,7 +927,7 @@ const AdminDashboard = () => {
                     required
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                   <textarea
                     value={taskForm.description}
@@ -937,7 +937,7 @@ const AdminDashboard = () => {
                     required
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div className="sm:col-span-2">
                   <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2">
                     <CheckSquare className="w-5 h-5" /> Assign Task
                   </button>

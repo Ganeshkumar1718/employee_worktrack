@@ -360,9 +360,9 @@ const EmployeeDashboard = () => {
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
       <header className="bg-white shadow-md relative z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Employee Dashboard</h1>
-          <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-800 text-center sm:text-left">Employee Dashboard</h1>
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto">
             <span className="text-gray-600">Welcome, {user?.employee_name}</span>
             <button
               onClick={() => setShowProfileModal(true)}
@@ -460,7 +460,7 @@ const EmployeeDashboard = () => {
           <div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
               {!todayAttendance || !todayAttendance.login_time || todayAttendance.logout_time ? (
                 <div className="bg-white p-6 rounded-xl shadow-md space-y-5">
                   <div>
@@ -547,7 +547,7 @@ const EmployeeDashboard = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <div className="bg-white p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Clock className="w-5 h-5 text-blue-600" />
@@ -579,7 +579,7 @@ const EmployeeDashboard = () => {
             </div>
 
             {/* Leave Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <div className="bg-white p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Calendar className="w-5 h-5 text-blue-600" />
@@ -614,7 +614,7 @@ const EmployeeDashboard = () => {
             {todayAttendance && (
               <div className="bg-white p-6 rounded-xl shadow-md mb-8">
                 <h3 className="text-lg font-semibold mb-4">Today's Status</h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <p className="text-gray-600">Latest Login Time</p>
                     <p className="font-semibold">{todayAttendance.login_time}</p>
@@ -694,7 +694,7 @@ const EmployeeDashboard = () => {
             {/* Leave Application Form */}
             <div className="bg-white rounded-xl shadow-md p-6 mb-8">
               <h2 className="text-xl font-semibold mb-4">Apply for Leave</h2>
-              <form onSubmit={handleLeaveSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <form onSubmit={handleLeaveSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Leave Type</label>
                   <select
@@ -727,7 +727,7 @@ const EmployeeDashboard = () => {
                     required
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
                   <textarea
                     value={leaveForm.reason}
@@ -737,7 +737,7 @@ const EmployeeDashboard = () => {
                     required
                   />
                 </div>
-                <div className="md:col-span-2">
+                <div className="sm:col-span-2">
                   <button
                     type="submit"
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
