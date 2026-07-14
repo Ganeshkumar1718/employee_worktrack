@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -10,7 +10,6 @@ import {
   Building,
   CheckCircle,
   Bell,
-  CheckSquare,
   MessageSquare,
   AlertTriangle,
   XCircle
@@ -19,6 +18,24 @@ import ProfileModal from '../components/ProfileModal';
 import TaskChatModal from '../components/TaskChatModal';
 import { calculateLiveWorkingTime } from '../utils/timeFormatter';
 import { notifySuccess, notifyError, notifyWarning, notifyInfo, requestNotificationPermission } from '../utils/notifications';
+
+const getCurrentLocation = () => new Promise((resolve, reject) => {
+  if (!navigator.geolocation) {
+    reject(new Error('Location is not supported by this browser'));
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      resolve({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      });
+    },
+    (error) => reject(error),
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+  );
+});
 
 const EmployeeDashboard = () => {
   const { user, logout, updateUser } = useAuth();
@@ -51,14 +68,13 @@ const EmployeeDashboard = () => {
     reason: ''
   });
   const [selectedTaskForChat, setSelectedTaskForChat] = useState(null);
-  const [holidays, setHolidays] = useState([]);
   const [feedbackText, setFeedbackText] = useState('');
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const timerRef = useRef(null);
   const isInitialTasksLoaded = useRef(false);
   const notificationsRef = useRef(null);
 
-  const showNotification = (message, type = 'success') => {
+  const showNotification = useCallback((message, type = 'success') => {
     setToast({ message, type });
     // Auto-dismiss in-app toast after 5 seconds
     setTimeout(() => {
@@ -70,13 +86,13 @@ const EmployeeDashboard = () => {
     else if (type === 'error') notifyError(message);
     else if (type === 'warning') notifyWarning(message);
     else notifyInfo(message);
-  };
+  }, []);
 
-  const authConfig = () => ({
+  const authConfig = useCallback(() => ({
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`
     }
-  });
+  }), []);
 
   const [readNotifications, setReadNotifications] = useState(() => {
     try {
@@ -100,23 +116,38 @@ const EmployeeDashboard = () => {
     .filter(t => !readNotifications.includes(`task-${t.task_id}`));
   const notificationCount = notificationTasks.length;
 
-  const getCurrentLocation = () => new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error('Location is not supported by this browser'));
-      return;
-    }
+  // Removed getCurrentLocation from inside the component
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        });
-      },
-      (error) => reject(error),
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  });
+  const fetchData = useCallback(async () => {
+    try {
+      const [attendanceRes, leavesRes, salariesRes, statsRes, leaveStatsRes, tasksRes] = await Promise.all([
+        axios.get('http://localhost:5003/api/attendance/my', authConfig()),
+        axios.get('http://localhost:5003/api/leaves/my', authConfig()),
+        axios.get('http://localhost:5003/api/salary/my', authConfig()),
+        axios.get('http://localhost:5003/api/attendance/my/stats', authConfig()),
+        axios.get('http://localhost:5003/api/leaves/my/stats', authConfig()),
+        axios.get('http://localhost:5003/api/tasks/my', authConfig())
+      ]);
+      setAttendance(attendanceRes.data);
+      setLeaves(leavesRes.data);
+      setSalaries(salariesRes.data);
+      setStats(statsRes.data);
+      setLeaveStats(leaveStatsRes.data);
+      setTasks(tasksRes.data);
+      isInitialTasksLoaded.current = true;
+      
+      // Check today's attendance - find active session first, then latest session
+      const today = new Date().toISOString().split('T')[0];
+      const todayRecords = attendanceRes.data.filter(a => a.attendance_date === today);
+      // Sort by attendance_id descending to get most recent first
+      todayRecords.sort((a, b) => b.attendance_id - a.attendance_id);
+      const activeSession = todayRecords.find(a => !a.logout_time);
+      const latestSession = todayRecords.length > 0 ? todayRecords[0] : null;
+      setTodayAttendance(activeSession || latestSession);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }, [authConfig]);
 
   useEffect(() => {
     requestNotificationPermission();
@@ -135,7 +166,7 @@ const EmployeeDashboard = () => {
       } catch (err) {}
     }, 10000);
     return () => clearInterval(pollInterval);
-  }, []);
+  }, [fetchData, authConfig, showNotification]);
 
   // Check for day change every minute to refresh today's attendance
   useEffect(() => {
@@ -152,7 +183,7 @@ const EmployeeDashboard = () => {
     return () => {
       clearInterval(dayCheckInterval);
     };
-  }, [todayAttendance]);
+  }, [todayAttendance, fetchData]);
 
   // Close notifications dropdown when clicking outside
   useEffect(() => {
@@ -195,39 +226,6 @@ const EmployeeDashboard = () => {
       });
     }
   }, [todayAttendance]);
-
-  const fetchData = async () => {
-    try {
-      const [attendanceRes, leavesRes, salariesRes, statsRes, leaveStatsRes, tasksRes, holidaysRes] = await Promise.all([
-        axios.get('http://localhost:5003/api/attendance/my', authConfig()),
-        axios.get('http://localhost:5003/api/leaves/my', authConfig()),
-        axios.get('http://localhost:5003/api/salary/my', authConfig()),
-        axios.get('http://localhost:5003/api/attendance/my/stats', authConfig()),
-        axios.get('http://localhost:5003/api/leaves/my/stats', authConfig()),
-        axios.get('http://localhost:5003/api/tasks/my', authConfig()),
-        axios.get('http://localhost:5003/api/holidays', authConfig())
-      ]);
-      setAttendance(attendanceRes.data);
-      setLeaves(leavesRes.data);
-      setSalaries(salariesRes.data);
-      setStats(statsRes.data);
-      setLeaveStats(leaveStatsRes.data);
-      setTasks(tasksRes.data);
-      setHolidays(holidaysRes.data);
-      isInitialTasksLoaded.current = true;
-      
-      // Check today's attendance - find active session first, then latest session
-      const today = new Date().toISOString().split('T')[0];
-      const todayRecords = attendanceRes.data.filter(a => a.attendance_date === today);
-      // Sort by attendance_id descending to get most recent first
-      todayRecords.sort((a, b) => b.attendance_id - a.attendance_id);
-      const activeSession = todayRecords.find(a => !a.logout_time);
-      const latestSession = todayRecords.length > 0 ? todayRecords[0] : null;
-      setTodayAttendance(activeSession || latestSession);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
 
   const handleLogin = async () => {
     try {

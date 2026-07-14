@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -12,7 +12,6 @@ import {
   Download,
   Search,
   Bell,
-  Filter,
   CheckSquare,
   MessageSquare,
   AlertTriangle
@@ -53,7 +52,7 @@ const AdminDashboard = () => {
   const isInitialTasksLoaded = useRef(false);
   const notificationsRef = useRef(null);
 
-  const showNotification = (message, type = 'success') => {
+  const showNotification = useCallback((message, type = 'success') => {
     setToast({ message, type });
     // Auto-dismiss in-app toast after 5 seconds
     setTimeout(() => {
@@ -65,7 +64,7 @@ const AdminDashboard = () => {
     else if (type === 'error') notifyError(message);
     else if (type === 'warning') notifyWarning(message);
     else notifyInfo(message);
-  };
+  }, []);
 
   const getEmployeeStatus = (employeeId) => {
     const today = new Date().toISOString().split('T')[0];
@@ -112,11 +111,33 @@ const AdminDashboard = () => {
   const notificationsCompletedTasks = completedTasks.filter(t => !readNotifications.includes(`task-${t.task_id}`));
   const notificationCount = notificationsPendingLeaves.length + notificationsCompletedTasks.length;
 
-  const authConfig = () => ({
+  const authConfig = useCallback(() => ({
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`
     }
-  });
+  }), []);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [employeesRes, attendanceRes, leavesRes, salariesRes, tasksRes, feedbackRes] = await Promise.all([
+        axios.get('http://localhost:5003/api/employees', authConfig()),
+        axios.get('http://localhost:5003/api/attendance/all', authConfig()),
+        axios.get('http://localhost:5003/api/leaves/all', authConfig()),
+        axios.get('http://localhost:5003/api/salary/all', authConfig()),
+        axios.get('http://localhost:5003/api/tasks/all', authConfig()),
+        axios.get('http://localhost:5003/api/feedback', authConfig())
+      ]);
+      setEmployees(employeesRes.data);
+      setAttendance(attendanceRes.data);
+      setLeaves(leavesRes.data);
+      setSalaries(salariesRes.data);
+      setTasks(tasksRes.data);
+      setFeedbacks(feedbackRes.data);
+      isInitialTasksLoaded.current = true;
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }, [authConfig]);
 
   useEffect(() => {
     requestNotificationPermission();
@@ -135,7 +156,7 @@ const AdminDashboard = () => {
       } catch (err) {}
     }, 10000);
     return () => clearInterval(pollInterval);
-  }, []);
+  }, [fetchData, authConfig, showNotification]);
 
   // Lock body scroll when salary dialog is open
   useEffect(() => {
@@ -161,28 +182,6 @@ const AdminDashboard = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  const fetchData = async () => {
-    try {
-      const [employeesRes, attendanceRes, leavesRes, salariesRes, tasksRes, feedbackRes] = await Promise.all([
-        axios.get('http://localhost:5003/api/employees', authConfig()),
-        axios.get('http://localhost:5003/api/attendance/all', authConfig()),
-        axios.get('http://localhost:5003/api/leaves/all', authConfig()),
-        axios.get('http://localhost:5003/api/salary/all', authConfig()),
-        axios.get('http://localhost:5003/api/tasks/all', authConfig()),
-        axios.get('http://localhost:5003/api/feedback', authConfig())
-      ]);
-      setEmployees(employeesRes.data);
-      setAttendance(attendanceRes.data);
-      setLeaves(leavesRes.data);
-      setSalaries(salariesRes.data);
-      setTasks(tasksRes.data);
-      setFeedbacks(feedbackRes.data);
-      isInitialTasksLoaded.current = true;
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
 
   const handleEmployeeSubmit = async (e) => {
     e.preventDefault();

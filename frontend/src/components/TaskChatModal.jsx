@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
-import { Send, X, Check, CheckCheck, MessageSquare } from 'lucide-react';
+import { Send, X, CheckCheck, MessageSquare } from 'lucide-react';
 import { notifyError } from '../utils/notifications';
 
 const TaskChatModal = ({ isOpen, onClose, taskId, taskTitle, currentUser }) => {
@@ -10,13 +10,13 @@ const TaskChatModal = ({ isOpen, onClose, taskId, taskTitle, currentUser }) => {
   const messagesEndRef = useRef(null);
   const pollingRef = useRef(null);
 
-  const authConfig = () => ({
+  const authConfig = useCallback(() => ({
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`
     }
-  });
+  }), []);
 
-  const fetchMessages = async (showLoading = false) => {
+  const fetchMessages = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
       const response = await axios.get(`http://localhost:5003/api/tasks/${taskId}/messages`, authConfig());
@@ -26,7 +26,7 @@ const TaskChatModal = ({ isOpen, onClose, taskId, taskTitle, currentUser }) => {
     } finally {
       if (showLoading) setLoading(false);
     }
-  };
+  }, [taskId, authConfig]);
 
   // Setup polling when open
   useEffect(() => {
@@ -44,7 +44,7 @@ const TaskChatModal = ({ isOpen, onClose, taskId, taskTitle, currentUser }) => {
         clearInterval(pollingRef.current);
       }
     };
-  }, [isOpen, taskId]);
+  }, [isOpen, taskId, fetchMessages]);
 
   // Scroll to bottom on new messages
   useEffect(() => {

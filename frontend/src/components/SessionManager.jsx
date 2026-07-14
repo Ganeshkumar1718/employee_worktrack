@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -17,14 +17,14 @@ const SessionManager = ({ children }) => {
   const [showIdleModal, setShowIdleModal] = useState(false);
   const [todayAttendance, setTodayAttendance] = useState(null);
 
-  const authConfig = () => ({
+  const authConfig = useCallback(() => ({
     headers: {
       Authorization: `Bearer ${localStorage.getItem('token')}`
     }
-  });
+  }), []);
 
   // Fetch today's attendance to check if user is clocked in
-  const fetchTodayAttendance = async () => {
+  const fetchTodayAttendance = useCallback(async () => {
     try {
       const response = await axios.get('http://localhost:5003/api/attendance/my', authConfig());
       const today = new Date().toISOString().split('T')[0];
@@ -36,13 +36,13 @@ const SessionManager = ({ children }) => {
     } catch (error) {
       console.error('Error fetching today attendance:', error);
     }
-  };
+  }, [authConfig]);
 
   useEffect(() => {
     if (user) {
       fetchTodayAttendance();
     }
-  }, [user]);
+  }, [user, fetchTodayAttendance]);
 
   // Cursor Inactivity Tracking Logic
   useEffect(() => {
@@ -90,10 +90,10 @@ const SessionManager = ({ children }) => {
     return () => {
       clearInterval(dayCheckInterval);
     };
-  }, [todayAttendance]);
+  }, [todayAttendance, fetchTodayAttendance]);
 
   // Handle auto-clockout when countdown reaches zero
-  const handleAutoClockout = async () => {
+  const handleAutoClockout = useCallback(async () => {
     try {
       // Check if user is clocked in today
       if (todayAttendance && todayAttendance.login_time && !todayAttendance.logout_time) {
@@ -108,7 +108,7 @@ const SessionManager = ({ children }) => {
       await logout(false);
       navigate('/login');
     }
-  };
+  }, [todayAttendance, logout, navigate, authConfig]);
 
   // Use idle timer hook — declared before handlers that need `reset`
   const { isIdle, reset, countdown } = useIdleTimer(
@@ -124,13 +124,13 @@ const SessionManager = ({ children }) => {
   }, [isIdle]);
 
   // Handle continue working button
-  const handleContinueWorking = () => {
+  const handleContinueWorking = useCallback(() => {
     setShowIdleModal(false);
     reset(); // Restart the 10-minute idle timer from scratch
-  };
+  }, [reset]);
 
   // Handle logout now button
-  const handleLogoutNow = async () => {
+  const handleLogoutNow = useCallback(async () => {
     try {
       // Check if user has an active session (clocked in but not clocked out)
       if (todayAttendance && todayAttendance.login_time && !todayAttendance.logout_time) {
@@ -145,7 +145,7 @@ const SessionManager = ({ children }) => {
       await logout(false);
       navigate('/login');
     }
-  };
+  }, [todayAttendance, logout, navigate, authConfig]);
 
   // Only enable idle detection for authenticated users
   if (!user) {
