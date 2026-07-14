@@ -31,6 +31,14 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/holidays', holidayRoutes);
 app.use('/api/feedback', feedbackRoutes);
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    status: "success",
+    message: "Employee WorkTrack Backend is Running"
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'WorkTrack Pro API is running' });
