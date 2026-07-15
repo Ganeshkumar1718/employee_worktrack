@@ -12,6 +12,7 @@ const salaryRoutes = require('./routes/salary');
 const taskRoutes = require('./routes/tasks');
 const holidayRoutes = require('./routes/holidays');
 const feedbackRoutes = require('./routes/feedback');
+const employeeStatusRoutes = require('./routes/employee');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,6 +31,7 @@ app.use('/api/salary', salaryRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/holidays', holidayRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/employee', employeeStatusRoutes);
 
 // Root route
 app.get('/', (req, res) => {

@@ -59,6 +59,8 @@ async function initializeDatabase() {
       hourly_rate REAL,
       role TEXT DEFAULT 'employee',
       active_token TEXT DEFAULT NULL,
+      status TEXT DEFAULT 'Active',
+      last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
@@ -221,6 +223,12 @@ async function initializeDatabase() {
     const employeesColumnNames = employeesColumns.map(col => col.name);
     if (!employeesColumnNames.includes('active_token')) {
       await dbOperations.run('ALTER TABLE employees ADD COLUMN active_token TEXT DEFAULT NULL');
+    }
+    if (!employeesColumnNames.includes('status')) {
+      await dbOperations.run("ALTER TABLE employees ADD COLUMN status TEXT DEFAULT 'Active'");
+    }
+    if (!employeesColumnNames.includes('last_activity')) {
+      await dbOperations.run('ALTER TABLE employees ADD COLUMN last_activity DATETIME DEFAULT NULL');
     }
 
     const taskMessagesColumns = await dbOperations.query("PRAGMA table_info(task_messages)");

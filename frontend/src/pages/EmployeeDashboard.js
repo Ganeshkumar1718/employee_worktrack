@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import TaskChatModal from '../components/TaskChatModal';
 import { calculateLiveWorkingTime } from '../utils/timeFormatter';
+import useActivityTracker from '../hooks/useActivityTracker';
 import { notifySuccess, notifyError, notifyWarning, notifyInfo, requestNotificationPermission } from '../utils/notifications';
 
 const getCurrentLocation = () => new Promise((resolve, reject) => {
@@ -39,6 +40,7 @@ const getCurrentLocation = () => new Promise((resolve, reject) => {
 const EmployeeDashboard = () => {
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
+  useActivityTracker();
   const [attendance, setAttendance] = useState([]);
   const [leaves, setLeaves] = useState([]);
   const [salaries, setSalaries] = useState([]);

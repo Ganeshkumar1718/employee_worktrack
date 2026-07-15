@@ -67,6 +67,13 @@ class Employee {
     );
   }
 
+  static async updateStatus(id, status, lastActivity) {
+    await db.run(
+      'UPDATE employees SET status = ?, last_activity = ?, updated_at = CURRENT_TIMESTAMP WHERE employee_id = ?',
+      [status, lastActivity, id]
+    );
+  }
+
   static async delete(id) {
     await db.run('DELETE FROM employees WHERE employee_id = ?', [id]);
   }
