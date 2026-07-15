@@ -9,7 +9,7 @@ const authMiddleware = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'worktrack_pro_secret_key_2024');
     req.user = decoded;
 
     // Single-device enforcement: check if this token is still the active one

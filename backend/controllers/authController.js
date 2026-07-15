@@ -60,7 +60,7 @@ const authController = {
       // Generate JWT token
       const token = jwt.sign(
         { employee_id: employee.employee_id, role: employee.role },
-        process.env.JWT_SECRET,
+        process.env.JWT_SECRET || 'worktrack_pro_secret_key_2024',
         { expiresIn: '24h' }
       );
 
