@@ -15,6 +15,9 @@ router.get('/my', authMiddleware, attendanceController.getMyAttendance);
 // Get my stats (protected)
 router.get('/my/stats', authMiddleware, attendanceController.getMyStats);
 
+// Get system idle time (protected)
+router.get('/system-idle', authMiddleware, attendanceController.getSystemIdleTime);
+
 // Get all attendance (admin only)
 router.get('/all', authMiddleware, adminMiddleware, attendanceController.getAllAttendance);
 

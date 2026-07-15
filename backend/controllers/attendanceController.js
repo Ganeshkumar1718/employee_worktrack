@@ -158,6 +158,37 @@ const attendanceController = {
       console.error('Auto clockout error:', error);
       res.status(500).json({ message: 'Server error' });
     }
+  },
+
+  getSystemIdleTime: async (req, res) => {
+    try {
+      const { exec } = require('child_process');
+      const path = require('path');
+      
+      if (process.platform !== 'win32') {
+        return res.json({ idleTime: 0, isSupported: false });
+      }
+
+      const scriptPath = path.resolve(__dirname, '../utils/get_idle_time.ps1');
+      const command = `powershell -ExecutionPolicy Bypass -File "${scriptPath}"`;
+
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error('System idle check error:', error);
+          return res.json({ idleTime: 0, isSupported: true, error: error.message });
+        }
+        
+        const idleTime = parseFloat(stdout.trim());
+        if (isNaN(idleTime)) {
+          return res.json({ idleTime: 0, isSupported: true });
+        }
+
+        res.json({ idleTime, isSupported: true });
+      });
+    } catch (err) {
+      console.error('Error running system idle command:', err);
+      res.json({ idleTime: 0, isSupported: false });
+    }
   }
 };
 
