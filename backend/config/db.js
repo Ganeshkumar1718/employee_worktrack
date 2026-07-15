@@ -2,7 +2,9 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
 // Connect to SQLite database
-const dbPath = path.join(__dirname, '../worktrack_pro.db');
+const dbPath = process.env.NODE_ENV === 'production'
+  ? '/data/worktrack_pro.db'
+  : path.join(__dirname, '../worktrack_pro.db');
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Database connection failed:', err);
