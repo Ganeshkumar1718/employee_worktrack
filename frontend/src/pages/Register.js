@@ -33,9 +33,13 @@ const Register = () => {
     await requestNotificationPermission();
 
     try {
-      await register(formData);
-      notifySuccess('Registration Successful!', 'You can now log in with your credentials.');
-      navigate('/login');
+      const data = await register(formData);
+      notifySuccess('Registration Successful!', 'Welcome to WorkTrack Pro.');
+      if (data.employee && data.employee.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       const errMsg = err.response?.data?.message || 'Registration failed';
       setError(errMsg);

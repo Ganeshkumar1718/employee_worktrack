@@ -34,7 +34,25 @@ const authController = {
         role: role || 'employee'
       });
 
-      res.status(201).json({ message: 'Employee registered successfully', employee_id });
+      const employee = await Employee.findById(employee_id);
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { employee_id: employee.employee_id, role: employee.role },
+        process.env.JWT_SECRET || 'worktrack_pro_secret_key_2024',
+        { expiresIn: '24h' }
+      );
+
+      // Single-device enforcement: save as the active token, overwriting any previous session
+      await Employee.saveActiveToken(employee.employee_id, token);
+
+      const { employee_password: _, ...employeeData } = employee;
+
+      res.status(201).json({
+        message: 'Employee registered successfully',
+        token,
+        employee: employeeData
+      });
     } catch (error) {
       console.error('Registration error:', error);
       res.status(500).json({ message: 'Server error' });

@@ -16,7 +16,6 @@ import {
   MessageSquare,
   AlertTriangle
 } from 'lucide-react';
-import ProfileModal from '../components/ProfileModal';
 import TaskChatModal from '../components/TaskChatModal';
 import { notifySuccess, notifyError, notifyWarning, notifyInfo, requestNotificationPermission } from '../utils/notifications';
 
@@ -44,7 +43,16 @@ const AdminDashboard = () => {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [showSalaryDialog, setShowSalaryDialog] = useState(false);
   const [salaryMonth, setSalaryMonth] = useState(new Date().toISOString().slice(0, 7));
-  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    employee_name: '',
+    employee_email: '',
+    department: '',
+    designation: '',
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
+  });
+  const [profileError, setProfileError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNotifications, setShowNotifications] = useState(false);
@@ -278,16 +286,45 @@ const AdminDashboard = () => {
     navigate('/login');
   };
 
-  const handleProfileSave = async (profileData) => {
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        employee_name: user.employee_name || '',
+        employee_email: user.employee_email || '',
+        department: user.department || '',
+        designation: user.designation || '',
+        current_password: '',
+        new_password: '',
+        confirm_password: ''
+      });
+      setProfileError('');
+    }
+  }, [user, activeTab]);
+
+  const handleProfileFormSubmit = async (e) => {
+    e.preventDefault();
+    setProfileError('');
+
+    if ((profileForm.new_password || profileForm.confirm_password) && profileForm.new_password !== profileForm.confirm_password) {
+      setProfileError('New password and confirmation must match.');
+      return;
+    }
+
+    if (profileForm.new_password && !profileForm.current_password) {
+      setProfileError('Current password is required to change your password.');
+      return;
+    }
+
     try {
-      const response = await api.put('/api/auth/profile', profileData, authConfig());
+      const response = await api.put('/api/auth/profile', profileForm, authConfig());
       updateUser(response.data.employee);
-      setShowProfileModal(false);
       showNotification(response.data.message || 'Profile updated successfully', 'success');
       // Update the employee list state if it contains the updated profile row
       setEmployees(prev => prev.map(emp => emp.employee_id === response.data.employee.employee_id ? response.data.employee : emp));
     } catch (error) {
-      showNotification(error.response?.data?.message || 'Profile update failed', 'error');
+      const msg = error.response?.data?.message || 'Profile update failed';
+      setProfileError(msg);
+      showNotification(msg, 'error');
     }
   };
 
@@ -324,7 +361,7 @@ const AdminDashboard = () => {
           <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto">
             <span className="text-gray-600">Welcome, {user?.employee_name}</span>
             <button
-              onClick={() => setShowProfileModal(true)}
+              onClick={() => setActiveTab('profile')}
               className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-blue-700 hover:bg-blue-100"
             >
               Profile
@@ -434,7 +471,7 @@ const AdminDashboard = () => {
       <nav className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-4 overflow-x-auto">
-            {['overview', 'employees', 'attendance', 'leaves', 'salary', 'tasks', 'feedback'].map((tab) => (
+            {['overview', 'employees', 'attendance', 'leaves', 'salary', 'tasks', 'feedback', 'profile'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1054,16 +1091,113 @@ const AdminDashboard = () => {
             </div>
           </div>
         )}
-      </main>
 
-      <ProfileModal
-        open={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-        user={user}
-        onSave={handleProfileSave}
-        title="Edit Profile"
-        submitLabel="Save Profile"
-      />
+        {activeTab === 'profile' && (
+          <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto border border-gray-100">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Edit Profile</h2>
+            <form onSubmit={handleProfileFormSubmit} className="space-y-4">
+              {profileError && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {profileError}
+                </div>
+              )}
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">Full Name</label>
+                <input
+                  type="text"
+                  value={profileForm.employee_name}
+                  onChange={(e) => setProfileForm({ ...profileForm, employee_name: e.target.value })}
+                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">Email</label>
+                <input
+                  type="email"
+                  value={profileForm.employee_email}
+                  onChange={(e) => setProfileForm({ ...profileForm, employee_email: e.target.value })}
+                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">Department</label>
+                  <input
+                    type="text"
+                    value={profileForm.department}
+                    onChange={(e) => setProfileForm({ ...profileForm, department: e.target.value })}
+                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700">Designation</label>
+                  <input
+                    type="text"
+                    value={profileForm.designation}
+                    onChange={(e) => setProfileForm({ ...profileForm, designation: e.target.value })}
+                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">Change Password</p>
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700">Current Password</label>
+                    <input
+                      type="password"
+                      value={profileForm.current_password}
+                      onChange={(e) => setProfileForm({ ...profileForm, current_password: e.target.value })}
+                      className="w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                      placeholder="Enter current password to change it"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">New Password</label>
+                      <input
+                        type="password"
+                        value={profileForm.new_password}
+                        onChange={(e) => setProfileForm({ ...profileForm, new_password: e.target.value })}
+                        className="w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                        placeholder="Leave blank"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Confirm Password</label>
+                      <input
+                        type="password"
+                        value={profileForm.confirm_password}
+                        onChange={(e) => setProfileForm({ ...profileForm, confirm_password: e.target.value })}
+                        className="w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                        placeholder="Repeat new password"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold"
+                >
+                  Save Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </main>
 
       {showSalaryDialog && (
         <div 
