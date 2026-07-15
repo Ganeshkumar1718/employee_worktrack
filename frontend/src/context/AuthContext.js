@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -15,9 +15,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          await axios.post('http://localhost:5003/api/auth/logout', {}, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
+          await api.post('/api/auth/logout', {});
         }
       } catch (_) {
         // Ignore errors — we'll clear local state regardless
@@ -26,12 +24,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    delete axios.defaults.headers.common['Authorization'];
+    delete api.defaults.headers.common['Authorization'];
   };
 
   useEffect(() => {
     // Set up response interceptor for 401 errors (session expired / logged in elsewhere)
-    interceptorRef.current = axios.interceptors.response.use(
+    interceptorRef.current = api.interceptors.response.use(
       (response) => response,
       (error) => {
         if (error.response && error.response.status === 401) {
@@ -42,7 +40,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             setUser(null);
-            delete axios.defaults.headers.common['Authorization'];
+            delete api.defaults.headers.common['Authorization'];
             setSessionExpired(true);
           }
         }
@@ -55,9 +53,9 @@ export const AuthProvider = ({ children }) => {
 
     if (token && userData) {
       // Set auth header immediately so the validation request can use it
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-      axios.get('http://localhost:5003/api/auth/profile')
+      api.get('/api/auth/profile')
         .then((res) => {
           // Token is valid — hydrate user state with fresh data from database
           setUser(res.data);
@@ -68,7 +66,7 @@ export const AuthProvider = ({ children }) => {
           // Token is expired/invalid/revoked — clear everything
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          delete axios.defaults.headers.common['Authorization'];
+          delete api.defaults.headers.common['Authorization'];
           setUser(null);
           setSessionExpired(true);
           setLoading(false);
@@ -80,13 +78,13 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       if (interceptorRef.current !== null) {
-        axios.interceptors.response.eject(interceptorRef.current);
+        api.interceptors.response.eject(interceptorRef.current);
       }
     };
   }, []);
 
   const login = async (email, password) => {
-    const response = await axios.post('http://localhost:5003/api/auth/login', {
+    const response = await api.post('/api/auth/login', {
       employee_email: email,
       employee_password: password
     });
@@ -96,13 +94,13 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('user', JSON.stringify(employee));
     setUser(employee);
     setSessionExpired(false);
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
     return response.data;
   };
 
   const register = async (userData) => {
-    const response = await axios.post('http://localhost:5003/api/auth/register', userData);
+    const response = await api.post('/api/auth/register', userData);
     return response.data;
   };
 
@@ -119,3 +117,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import { 
   LogOut, 
   Users, 
@@ -120,12 +120,12 @@ const AdminDashboard = () => {
   const fetchData = useCallback(async () => {
     try {
       const [employeesRes, attendanceRes, leavesRes, salariesRes, tasksRes, feedbackRes] = await Promise.all([
-        axios.get('http://localhost:5003/api/employees', authConfig()),
-        axios.get('http://localhost:5003/api/attendance/all', authConfig()),
-        axios.get('http://localhost:5003/api/leaves/all', authConfig()),
-        axios.get('http://localhost:5003/api/salary/all', authConfig()),
-        axios.get('http://localhost:5003/api/tasks/all', authConfig()),
-        axios.get('http://localhost:5003/api/feedback', authConfig())
+        api.get('/api/employees', authConfig()),
+        api.get('/api/attendance/all', authConfig()),
+        api.get('/api/leaves/all', authConfig()),
+        api.get('/api/salary/all', authConfig()),
+        api.get('/api/tasks/all', authConfig()),
+        api.get('/api/feedback', authConfig())
       ]);
       setEmployees(employeesRes.data);
       setAttendance(attendanceRes.data);
@@ -144,7 +144,7 @@ const AdminDashboard = () => {
     fetchData();
     const pollInterval = setInterval(async () => {
       try {
-        const tasksRes = await axios.get('http://localhost:5003/api/tasks/all', authConfig());
+        const tasksRes = await api.get('/api/tasks/all', authConfig());
         setTasks(prevTasks => {
           const prevCompleted = prevTasks.filter(t => t.status === 'completed').length;
           const newCompleted = tasksRes.data.filter(t => t.status === 'completed').length;
@@ -187,10 +187,10 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       if (editingEmployee) {
-        await axios.put(`http://localhost:5003/api/employees/${editingEmployee.employee_id}`, employeeForm, authConfig());
+        await api.put(`/api/employees/${editingEmployee.employee_id}`, employeeForm, authConfig());
         showNotification('Employee updated successfully', 'success');
       } else {
-        await axios.post('http://localhost:5003/api/employees', employeeForm, authConfig());
+        await api.post('/api/employees', employeeForm, authConfig());
         showNotification('Employee created successfully', 'success');
       }
       setEmployeeForm({
@@ -225,7 +225,7 @@ const AdminDashboard = () => {
   const handleDeleteEmployee = async (employeeId) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       try {
-        await axios.delete(`http://localhost:5003/api/employees/${employeeId}`, authConfig());
+        await api.delete(`/api/employees/${employeeId}`, authConfig());
         showNotification('Employee deleted successfully', 'success');
         fetchData();
       } catch (error) {
@@ -237,7 +237,7 @@ const AdminDashboard = () => {
   const handleTaskSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5003/api/tasks/assign', taskForm, authConfig());
+      await api.post('/api/tasks/assign', taskForm, authConfig());
       showNotification('Task assigned successfully', 'success');
       setTaskForm({ employee_id: '', title: '', description: '' });
       fetchData();
@@ -248,7 +248,7 @@ const AdminDashboard = () => {
 
   const handleLeaveAction = async (leaveId, action) => {
     try {
-      await axios.put(`http://localhost:5003/api/leaves/${action}/${leaveId}`, {}, authConfig());
+      await api.put(`/api/leaves/${action}/${leaveId}`, {}, authConfig());
       showNotification(`Leave ${action}d successfully`, 'success');
       fetchData();
     } catch (error) {
@@ -258,7 +258,7 @@ const AdminDashboard = () => {
 
   const handleCalculateAllSalaries = async () => {
     try {
-      await axios.post('http://localhost:5003/api/salary/calculate-all', { month: salaryMonth }, authConfig());
+      await api.post('/api/salary/calculate-all', { month: salaryMonth }, authConfig());
       showNotification('All salaries calculated successfully', 'success');
       setShowSalaryDialog(false);
       fetchData();
@@ -280,7 +280,7 @@ const AdminDashboard = () => {
 
   const handleProfileSave = async (profileData) => {
     try {
-      const response = await axios.put('http://localhost:5003/api/auth/profile', profileData, authConfig());
+      const response = await api.put('/api/auth/profile', profileData, authConfig());
       updateUser(response.data.employee);
       setShowProfileModal(false);
       showNotification(response.data.message || 'Profile updated successfully', 'success');

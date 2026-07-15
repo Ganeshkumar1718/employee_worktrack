@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { Send, X, CheckCheck, MessageSquare } from 'lucide-react';
 import { notifyError } from '../utils/notifications';
 
@@ -19,7 +19,7 @@ const TaskChatModal = ({ isOpen, onClose, taskId, taskTitle, currentUser }) => {
   const fetchMessages = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:5003/api/tasks/${taskId}/messages`, authConfig());
+      const response = await api.get(`/api/tasks/${taskId}/messages`, authConfig());
       setMessages(response.data);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -58,7 +58,7 @@ const TaskChatModal = ({ isOpen, onClose, taskId, taskTitle, currentUser }) => {
     if (!newMessage.trim()) return;
 
     try {
-      await axios.post(`http://localhost:5003/api/tasks/${taskId}/messages`, {
+      await api.post(`/api/tasks/${taskId}/messages`, {
         message: newMessage.trim()
       }, authConfig());
       setNewMessage('');

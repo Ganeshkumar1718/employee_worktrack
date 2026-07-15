@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
 import useIdleTimer from '../hooks/useIdleTimer';
 import IdleWarningModal from './IdleWarningModal';
 import { notifyWarning } from '../utils/notifications';
@@ -26,7 +26,7 @@ const SessionManager = ({ children }) => {
   // Fetch today's attendance to check if user is clocked in
   const fetchTodayAttendance = useCallback(async () => {
     try {
-      const response = await axios.get('http://localhost:5003/api/attendance/my', authConfig());
+      const response = await api.get('/api/attendance/my', authConfig());
       const today = new Date().toISOString().split('T')[0];
       // Find the most recent active session (no logout_time) or the latest session
       const todayRecords = response.data.filter(a => a.attendance_date === today);
@@ -98,7 +98,7 @@ const SessionManager = ({ children }) => {
       // Check if user is clocked in today
       if (todayAttendance && todayAttendance.login_time && !todayAttendance.logout_time) {
         // Auto-clockout
-        await axios.post('http://localhost:5003/api/attendance/auto-clockout', {}, authConfig());
+        await api.post('/api/attendance/auto-clockout', {}, authConfig());
       }
       // Clear active_token server-side before redirecting
       await logout();
@@ -135,7 +135,7 @@ const SessionManager = ({ children }) => {
       // Check if user has an active session (clocked in but not clocked out)
       if (todayAttendance && todayAttendance.login_time && !todayAttendance.logout_time) {
         // Clock out
-        await axios.post('http://localhost:5003/api/attendance/logout', {}, authConfig());
+        await api.post('/api/attendance/logout', {}, authConfig());
       }
       // Clear active_token server-side before redirecting
       await logout();

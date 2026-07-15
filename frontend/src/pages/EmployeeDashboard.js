@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import { 
   LogOut, 
   Clock, 
@@ -121,12 +121,12 @@ const EmployeeDashboard = () => {
   const fetchData = useCallback(async () => {
     try {
       const [attendanceRes, leavesRes, salariesRes, statsRes, leaveStatsRes, tasksRes] = await Promise.all([
-        axios.get('http://localhost:5003/api/attendance/my', authConfig()),
-        axios.get('http://localhost:5003/api/leaves/my', authConfig()),
-        axios.get('http://localhost:5003/api/salary/my', authConfig()),
-        axios.get('http://localhost:5003/api/attendance/my/stats', authConfig()),
-        axios.get('http://localhost:5003/api/leaves/my/stats', authConfig()),
-        axios.get('http://localhost:5003/api/tasks/my', authConfig())
+        api.get('/api/attendance/my', authConfig()),
+        api.get('/api/leaves/my', authConfig()),
+        api.get('/api/salary/my', authConfig()),
+        api.get('/api/attendance/my/stats', authConfig()),
+        api.get('/api/leaves/my/stats', authConfig()),
+        api.get('/api/tasks/my', authConfig())
       ]);
       setAttendance(attendanceRes.data);
       setLeaves(leavesRes.data);
@@ -154,7 +154,7 @@ const EmployeeDashboard = () => {
     fetchData();
     const pollInterval = setInterval(async () => {
       try {
-        const tasksRes = await axios.get('http://localhost:5003/api/tasks/my', authConfig());
+        const tasksRes = await api.get('/api/tasks/my', authConfig());
         setTasks(prevTasks => {
           const prevPending = prevTasks.filter(t => t.status === 'pending').length;
           const newPending = tasksRes.data.filter(t => t.status === 'pending').length;
@@ -247,7 +247,7 @@ const EmployeeDashboard = () => {
         setLocationStatus('Location disabled for this session');
       }
 
-      const response = await axios.post('http://localhost:5003/api/attendance/login', {
+      const response = await api.post('/api/attendance/login', {
         work_mode: workMode,
         device_info: navigator.userAgent,
         ...locationPayload
@@ -267,7 +267,7 @@ const EmployeeDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post('http://localhost:5003/api/attendance/logout', {}, authConfig());
+      const response = await api.post('/api/attendance/logout', {}, authConfig());
       
       console.log('Clock out successful:', response.data);
       showNotification('Clock out successful! Working time: ' + response.data.totalWorkingTime, 'success');
@@ -283,7 +283,7 @@ const EmployeeDashboard = () => {
   const handleLeaveSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5003/api/leaves/apply', leaveForm, authConfig());
+      await api.post('/api/leaves/apply', leaveForm, authConfig());
       showNotification('Leave applied successfully', 'success');
       setLeaveForm({ leave_type: 'sick', start_date: '', end_date: '', reason: '' });
       fetchData();
@@ -297,7 +297,7 @@ const EmployeeDashboard = () => {
     if (!feedbackText.trim()) return;
     try {
       setSubmittingFeedback(true);
-      await axios.post('http://localhost:5003/api/feedback', {
+      await api.post('/api/feedback', {
         feedback_text: feedbackText
       }, authConfig());
       showNotification('Feedback submitted successfully. Thank you!', 'success');
@@ -317,7 +317,7 @@ const EmployeeDashboard = () => {
       return;
     }
     try {
-      await axios.put(`http://localhost:5003/api/tasks/${taskId}/complete`, { employee_reply: reply }, authConfig());
+      await api.put(`/api/tasks/${taskId}/complete`, { employee_reply: reply }, authConfig());
       showNotification('Task marked as completed!', 'success');
       fetchData();
     } catch (error) {
@@ -330,7 +330,7 @@ const EmployeeDashboard = () => {
       // Check if user has an active session (clocked in but not clocked out)
       if (todayAttendance && todayAttendance.login_time && !todayAttendance.logout_time) {
         // Auto clock out before logout
-        await axios.post('http://localhost:5003/api/attendance/logout', {}, authConfig());
+        await api.post('/api/attendance/logout', {}, authConfig());
       }
       // Call server-side logout to clear active_token (single-device enforcement)
       await logout();
@@ -345,7 +345,7 @@ const EmployeeDashboard = () => {
 
   const handleProfileSave = async (profileData) => {
     try {
-      const response = await axios.put('http://localhost:5003/api/auth/profile', profileData, authConfig());
+      const response = await api.put('/api/auth/profile', profileData, authConfig());
       updateUser(response.data.employee);
       setShowProfileModal(false);
       showNotification(response.data.message || 'Profile updated successfully', 'success');
