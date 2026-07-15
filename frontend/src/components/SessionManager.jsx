@@ -44,37 +44,43 @@ const SessionManager = ({ children }) => {
     }
   }, [user, fetchTodayAttendance]);
 
-  // Cursor Inactivity Tracking Logic
+  // Activity Inactivity Tracking Logic (Only after clock in)
   useEffect(() => {
     if (!user) return;
+
+    // Only start tracking inactivity if the user is clocked in
+    const isClockedIn = todayAttendance && todayAttendance.login_time && !todayAttendance.logout_time;
+    if (!isClockedIn) return;
 
     const threshold = 30 * 1000; // 30 seconds threshold
     const lastActivityRef = { current: Date.now() };
     let warningSent = false;
 
-    const handleMouseMove = () => {
+    const handleActivity = () => {
       lastActivityRef.current = Date.now();
       warningSent = false;
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - lastActivityRef.current;
       if (elapsed >= threshold && !warningSent) {
         warningSent = true;
         notifyWarning(
-          'Cursor Inactivity Warning',
-          'Your mouse cursor has not moved for 30 seconds.'
+          'Inactivity Warning',
+          'No cursor movement or key activity detected for 30 seconds.'
         );
       }
     }, 1000);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
       clearInterval(interval);
     };
-  }, [user]);
+  }, [user, todayAttendance]);
 
   // Check for day change every minute
   useEffect(() => {
