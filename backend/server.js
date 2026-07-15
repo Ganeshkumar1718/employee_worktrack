@@ -44,6 +44,48 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'WorkTrack Pro API is running' });
 });
 
+// Debug DB route
+app.get('/api/debug-db', async (req, res) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const dbPath = path.join(__dirname, 'worktrack_pro.db');
+    const dbExists = fs.existsSync(dbPath);
+    
+    let dbDetails = {};
+    if (dbExists) {
+      const stats = fs.statSync(dbPath);
+      dbDetails = {
+        size: stats.size,
+        mode: stats.mode
+      };
+    }
+    
+    const dbOperations = require('./config/db');
+    const employees = await dbOperations.query('SELECT employee_id, employee_name, employee_email, role FROM employees');
+    const holidaysCount = await dbOperations.get('SELECT COUNT(*) as count FROM holidays');
+    
+    res.json({
+      dbPath,
+      dbExists,
+      dbDetails,
+      employees,
+      holidaysCount,
+      env: {
+        JWT_SECRET_EXISTS: !!process.env.JWT_SECRET,
+        JWT_SECRET_VALUE: process.env.JWT_SECRET,
+        NODE_ENV: process.env.NODE_ENV,
+        PORT: process.env.PORT
+      }
+    });
+  } catch (err) {
+    res.json({
+      error: err.message,
+      stack: err.stack
+    });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
