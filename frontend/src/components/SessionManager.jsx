@@ -86,6 +86,19 @@ const SessionManager = ({ children }) => {
     handleAutoClockout  // When the 10-second countdown finishes, auto-clockout
   );
 
+  // Listen for global idle events triggered by the Electron desktop wrapper
+  useEffect(() => {
+    const handleElectronIdle = () => {
+      console.log("Global inactivity detected by Electron. Auto-clocking out...");
+      handleAutoClockout();
+    };
+
+    window.addEventListener('electron-idle-timeout', handleElectronIdle);
+    return () => {
+      window.removeEventListener('electron-idle-timeout', handleElectronIdle);
+    };
+  }, [handleAutoClockout]);
+
   // Show modal when idle state changes
   useEffect(() => {
     if (isIdle) {
