@@ -2,10 +2,10 @@ const db = require('../config/db');
 
 class Employee {
   static async create(employeeData) {
-    const { employee_name, employee_email, employee_password, department, designation, annual_package, hourly_rate, role } = employeeData;
+    const { employee_name, employee_email, employee_password, department, designation, annual_package, hourly_rate, role, profile_photo } = employeeData;
     const result = await db.run(
-      'INSERT INTO employees (employee_name, employee_email, employee_password, department, designation, annual_package, hourly_rate, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [employee_name, employee_email, employee_password, department, designation, annual_package, hourly_rate, role]
+      'INSERT INTO employees (employee_name, employee_email, employee_password, department, designation, annual_package, hourly_rate, role, profile_photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [employee_name, employee_email, employee_password, department, designation, annual_package, hourly_rate, role, profile_photo || null]
     );
     return result.id;
   }
@@ -21,23 +21,23 @@ class Employee {
   }
 
   static async getAll() {
-    const rows = await db.query('SELECT employee_id, employee_name, employee_email, department, designation, annual_package, hourly_rate, role, created_at FROM employees');
+    const rows = await db.query('SELECT employee_id, employee_name, employee_email, department, designation, annual_package, hourly_rate, role, profile_photo, created_at FROM employees');
     return rows;
   }
 
   static async update(id, employeeData) {
-    const { employee_name, employee_email, department, designation, annual_package, hourly_rate, role } = employeeData;
+    const { employee_name, employee_email, department, designation, annual_package, hourly_rate, role, profile_photo } = employeeData;
     await db.run(
-      'UPDATE employees SET employee_name = ?, employee_email = ?, department = ?, designation = ?, annual_package = ?, hourly_rate = ?, role = ?, updated_at = CURRENT_TIMESTAMP WHERE employee_id = ?',
-      [employee_name, employee_email, department, designation, annual_package, hourly_rate, role, id]
+      'UPDATE employees SET employee_name = ?, employee_email = ?, department = ?, designation = ?, annual_package = ?, hourly_rate = ?, role = ?, profile_photo = ?, updated_at = CURRENT_TIMESTAMP WHERE employee_id = ?',
+      [employee_name, employee_email, department, designation, annual_package, hourly_rate, role, profile_photo, id]
     );
   }
 
   static async updateProfile(id, profileData) {
-    const { employee_name, employee_email, department, designation } = profileData;
+    const { employee_name, employee_email, department, designation, profile_photo } = profileData;
     await db.run(
-      'UPDATE employees SET employee_name = ?, employee_email = ?, department = ?, designation = ?, updated_at = CURRENT_TIMESTAMP WHERE employee_id = ?',
-      [employee_name, employee_email, department, designation, id]
+      'UPDATE employees SET employee_name = ?, employee_email = ?, department = ?, designation = ?, profile_photo = ?, updated_at = CURRENT_TIMESTAMP WHERE employee_id = ?',
+      [employee_name, employee_email, department, designation, profile_photo, id]
     );
   }
 

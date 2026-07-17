@@ -27,7 +27,7 @@ const employeeController = {
 
   createEmployee: async (req, res) => {
     try {
-      const { employee_name, employee_email, employee_password, department, designation, annual_package, role } = req.body;
+      const { employee_name, employee_email, employee_password, department, designation, annual_package, role, profile_photo } = req.body;
 
       // Check if employee already exists
       const existingEmployee = await Employee.findByEmail(employee_email);
@@ -52,7 +52,8 @@ const employeeController = {
         designation,
         annual_package,
         hourly_rate,
-        role: role || 'employee'
+        role: role || 'employee',
+        profile_photo: profile_photo || null
       });
 
       res.status(201).json({ message: 'Employee created successfully', employee_id });
@@ -64,7 +65,7 @@ const employeeController = {
 
   updateEmployee: async (req, res) => {
     try {
-      const { employee_name, employee_email, employee_password, department, designation, annual_package, role } = req.body;
+      const { employee_name, employee_email, employee_password, department, designation, annual_package, role, profile_photo } = req.body;
       const employee = await Employee.findById(req.params.id);
       if (!employee) {
         return res.status(404).json({ message: 'Employee not found' });
@@ -84,7 +85,8 @@ const employeeController = {
         designation,
         annual_package: pkg,
         hourly_rate,
-        role: role || employee.role
+        role: role || employee.role,
+        profile_photo: profile_photo !== undefined ? profile_photo : employee.profile_photo
       });
 
       // If password is provided, hash it and update it

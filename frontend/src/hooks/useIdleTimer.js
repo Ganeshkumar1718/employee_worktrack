@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { sendSystemNotification, requestNotificationPermission } from '../utils/notifications';
 
 /**
  * Custom hook for detecting user inactivity
@@ -14,45 +15,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
  */
 
 const PRE_WARNING_OFFSET = 60 * 1000; // 60 seconds (1 minute before timeout)
-
-/**
- * Request browser notification permission on first call.
- * Returns true if permission is granted.
- */
-const requestNotificationPermission = async () => {
-  if (!('Notification' in window)) return false;
-  if (Notification.permission === 'granted') return true;
-  if (Notification.permission === 'denied') return false;
-  const result = await Notification.requestPermission();
-  return result === 'granted';
-};
-
-/**
- * Send a system notification via the Browser Notification API.
- */
-const sendSystemNotification = (title, body) => {
-  if (!('Notification' in window)) return null;
-  if (Notification.permission !== 'granted') return null;
-
-  try {
-    const notification = new Notification(title, {
-      body,
-      tag: 'worktrack-idle-warning', // Prevents duplicate notifications
-      requireInteraction: true, // Stays visible until user interacts
-    });
-
-    // Clicking the notification brings the user back to the app
-    notification.onclick = () => {
-      window.focus();
-      notification.close();
-    };
-    return notification;
-  } catch (err) {
-    // Fallback: some environments don't support the Notification constructor
-    console.warn('System notification failed:', err);
-    return null;
-  }
-};
 
 const useIdleTimer = (timeout = 10 * 60 * 1000, onIdle) => {
   const [isIdle, setIsIdle] = useState(false);
@@ -80,7 +42,12 @@ const useIdleTimer = (timeout = 10 * 60 * 1000, onIdle) => {
     preWarningSentRef.current = true;
     const notification = sendSystemNotification(
       '⚠️ WorkTrack Pro — Inactivity Warning',
-      `You have been inactive for ${Math.floor((timeout - PRE_WARNING_OFFSET) / 60000)} minutes. You will be automatically clocked out in 1 minute if no activity is detected.`
+      {
+        body: `You have been inactive for ${Math.floor((timeout - PRE_WARNING_OFFSET) / 60000)} minutes. You will be automatically clocked out in 1 minute if no activity is detected.`,
+        type: 'warning',
+        tag: 'worktrack-idle-warning',
+        requireInteraction: true
+      }
     );
     preWarningNotificationRef.current = notification;
   }, [timeout]);

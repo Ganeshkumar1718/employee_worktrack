@@ -60,6 +60,7 @@ async function initializeDatabase() {
       role TEXT DEFAULT 'employee',
       active_token TEXT DEFAULT NULL,
       status TEXT DEFAULT 'Active',
+      profile_photo TEXT DEFAULT NULL,
       last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -229,6 +230,9 @@ async function initializeDatabase() {
     }
     if (!employeesColumnNames.includes('last_activity')) {
       await dbOperations.run('ALTER TABLE employees ADD COLUMN last_activity DATETIME DEFAULT NULL');
+    }
+    if (!employeesColumnNames.includes('profile_photo')) {
+      await dbOperations.run('ALTER TABLE employees ADD COLUMN profile_photo TEXT DEFAULT NULL');
     }
 
     const taskMessagesColumns = await dbOperations.query("PRAGMA table_info(task_messages)");

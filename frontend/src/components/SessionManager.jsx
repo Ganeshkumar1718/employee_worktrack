@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import useIdleTimer from '../hooks/useIdleTimer';
 import IdleWarningModal from './IdleWarningModal';
-import { notifyWarning } from '../utils/notifications';
 
 /**
  * SessionManager Component
@@ -115,20 +114,12 @@ const SessionManager = ({ children }) => {
   // Handle logout now button
   const handleLogoutNow = useCallback(async () => {
     try {
-      // Check if user has an active session (clocked in but not clocked out)
-      if (todayAttendance && todayAttendance.login_time && !todayAttendance.logout_time) {
-        // Clock out
-        await api.post('/api/attendance/logout', {}, authConfig());
-      }
-      // Clear active_token server-side before redirecting
       await logout();
-      navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
-      await logout(false);
-      navigate('/login');
     }
-  }, [todayAttendance, logout, navigate, authConfig]);
+    navigate('/login');
+  }, [logout, navigate]);
 
   // Only enable idle detection for authenticated users
   if (!user) {

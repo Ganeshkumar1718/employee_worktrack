@@ -122,7 +122,7 @@ const authController = {
 
   updateProfile: async (req, res) => {
     try {
-      const { employee_name, employee_email, department, designation, current_password, new_password, confirm_password } = req.body;
+      const { employee_name, employee_email, department, designation, current_password, new_password, confirm_password, profile_photo } = req.body;
       const currentEmployee = await Employee.findById(req.user.employee_id);
 
       if (!currentEmployee) {
@@ -159,7 +159,8 @@ const authController = {
         employee_name,
         employee_email,
         department: req.user.role === 'admin' ? department : currentEmployee.department,
-        designation: req.user.role === 'admin' ? designation : currentEmployee.designation
+        designation: req.user.role === 'admin' ? designation : currentEmployee.designation,
+        profile_photo: profile_photo !== undefined ? profile_photo : currentEmployee.profile_photo
       };
 
       await Employee.updateProfile(req.user.employee_id, updatedFields);

@@ -51,6 +51,7 @@ const AdminDashboard = () => {
     employee_email: '',
     department: '',
     designation: '',
+    profile_photo: '',
     current_password: '',
     new_password: '',
     confirm_password: ''
@@ -311,6 +312,7 @@ const AdminDashboard = () => {
         employee_email: user.employee_email || '',
         department: user.department || '',
         designation: user.designation || '',
+        profile_photo: user.profile_photo || '',
         current_password: '',
         new_password: '',
         confirm_password: ''
@@ -318,6 +320,24 @@ const AdminDashboard = () => {
       setProfileError('');
     }
   }, [user, activeTab]);
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        showNotification('Image size must be less than 2MB', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileForm(prev => ({
+          ...prev,
+          profile_photo: reader.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleProfileFormSubmit = async (e) => {
     e.preventDefault();
@@ -435,8 +455,12 @@ const AdminDashboard = () => {
             </div>
             <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 w-full sm:w-auto">
               <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                  {user?.employee_name?.charAt(0)}
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
+                  {user?.profile_photo ? (
+                    <img src={user.profile_photo} alt={user.employee_name} className="w-full h-full object-cover" />
+                  ) : (
+                    user?.employee_name?.charAt(0)
+                  )}
                 </div>
                 <span className="text-slate-700 dark:text-slate-300 font-medium hidden sm:block">{user?.employee_name}</span>
               </div>
@@ -776,7 +800,16 @@ const AdminDashboard = () => {
                   <tbody className="divide-y divide-gray-200">
                     {filteredEmployees.map((employee) => (
                       <tr key={employee.employee_id}>
-                        <td className="px-6 py-4 whitespace-nowrap font-medium">{employee.employee_name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0">
+                            {employee.profile_photo ? (
+                              <img src={employee.profile_photo} alt={employee.employee_name} className="w-full h-full object-cover" />
+                            ) : (
+                              employee.employee_name?.charAt(0)
+                            )}
+                          </div>
+                          <span>{employee.employee_name}</span>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">{employee.employee_email}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{employee.department}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{employee.designation}</td>
@@ -1163,6 +1196,37 @@ const AdminDashboard = () => {
                   {profileError}
                 </div>
               )}
+
+              <div className="flex flex-col items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-dashed border-gray-200 dark:border-slate-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 text-center">Profile Photo</label>
+                <div className="relative group">
+                  <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-bold overflow-hidden shadow-lg border-2 border-white dark:border-slate-800 flex-shrink-0">
+                    {profileForm.profile_photo ? (
+                      <img src={profileForm.profile_photo} alt="Profile Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      user?.employee_name?.charAt(0)
+                    )}
+                  </div>
+                  <label className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    Change
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                {profileForm.profile_photo && (
+                  <button
+                    type="button"
+                    onClick={() => setProfileForm({ ...profileForm, profile_photo: '' })}
+                    className="text-xs text-red-500 hover:text-red-600 font-medium"
+                  >
+                    Remove Photo
+                  </button>
+                )}
+              </div>
 
               <div>
                 <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Full Name</label>

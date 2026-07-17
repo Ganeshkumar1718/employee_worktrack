@@ -15,6 +15,12 @@ export const AuthProvider = ({ children }) => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
+          // Auto clock out before logging out
+          try {
+            await api.post('/api/attendance/logout', {});
+          } catch (_) {
+            // Ignore if not clocked in
+          }
           await api.post('/api/auth/logout', {});
         }
       } catch (_) {
@@ -47,6 +53,25 @@ export const AuthProvider = ({ children }) => {
         return Promise.reject(error);
       }
     );
+
+    // Auto-clockout when user closes tab/window
+    const handleBeforeUnload = () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5003';
+        fetch(`${baseURL}/api/attendance/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({}),
+          keepalive: true
+        });
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
@@ -82,6 +107,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
       if (interceptorRef.current !== null) {
         api.interceptors.response.eject(interceptorRef.current);
       }

@@ -70,10 +70,13 @@ export const sendSystemNotification = (title, options = {}) => {
       if (!requireInteraction) {
         setTimeout(() => notification.close(), 6000);
       }
+      return notification;
     } catch (err) {
       console.warn('System notification failed:', err);
+      return null;
     }
   }
+  return null;
 };
 
 /**
