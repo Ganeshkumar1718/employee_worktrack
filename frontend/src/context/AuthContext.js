@@ -62,13 +62,18 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('user', JSON.stringify(res.data));
           setLoading(false);
         })
-        .catch(() => {
-          // Token is expired/invalid/revoked — clear everything
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          delete api.defaults.headers.common['Authorization'];
-          setUser(null);
-          setSessionExpired(true);
+        .catch((error) => {
+          if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+            // Token is explicitly expired/invalid/revoked — clear everything
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            delete api.defaults.headers.common['Authorization'];
+            setUser(null);
+            setSessionExpired(true);
+          } else {
+            // Network error, backend sleeping, or timeout - use cached data to prevent logging out
+            setUser(JSON.parse(userData));
+          }
           setLoading(false);
         });
     } else {
