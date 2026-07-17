@@ -8,14 +8,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
  * 
  * Features:
  * - Resets the timer on any user interaction (mouse, keyboard, touch, scroll)
- * - Detects when the browser tab goes to background (visibility change / window blur)
- *   and checks elapsed idle time when the user returns
- * - Sends a system notification at 9 min 30 sec (30 seconds before idle modal)
+ * - Uses a robust setInterval to check time elapsed, bypassing browser tab-suspend issues
+ * - Sends a system notification exactly 1 minute before the idle timeout
  * - Throttles activity events for performance
  */
 
-// Pre-warning notification fires 30 seconds before the idle timeout
-const PRE_WARNING_OFFSET = 30 * 1000; // 30 seconds
+const PRE_WARNING_OFFSET = 60 * 1000; // 60 seconds (1 minute before timeout)
 
 /**
  * Request browser notification permission on first call.
@@ -59,14 +57,13 @@ const sendSystemNotification = (title, body) => {
 const useIdleTimer = (timeout = 10 * 60 * 1000, onIdle) => {
   const [isIdle, setIsIdle] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const timeoutRef = useRef(null);
-  const preWarningRef = useRef(null); // Timer for the 9:30 system notification
-  const countdownRef = useRef(null);
+  
   const lastActivityRef = useRef(Date.now());
   const throttleRef = useRef(null);
   const onIdleRef = useRef(onIdle);
-  const preWarningSentRef = useRef(false); // Prevents duplicate notifications
-  const preWarningNotificationRef = useRef(null); // Ref to active notification to dismiss it on activity
+  const preWarningSentRef = useRef(false);
+  const preWarningNotificationRef = useRef(null);
+  const idleTriggeredRef = useRef(false);
 
   // Keep onIdle ref current to avoid stale closures
   useEffect(() => {
@@ -78,83 +75,22 @@ const useIdleTimer = (timeout = 10 * 60 * 1000, onIdle) => {
     requestNotificationPermission();
   }, []);
 
-  // Send the pre-warning system notification
   const sendPreWarning = useCallback(() => {
     if (preWarningSentRef.current) return; // Already sent for this idle cycle
     preWarningSentRef.current = true;
     const notification = sendSystemNotification(
       '⚠️ WorkTrack Pro — Inactivity Warning',
-      'You have been inactive for 9 minutes 30 seconds. You will be logged out in 30 seconds if no activity is detected.'
+      `You have been inactive for ${Math.floor((timeout - PRE_WARNING_OFFSET) / 60000)} minutes. You will be automatically clocked out in 1 minute if no activity is detected.`
     );
     preWarningNotificationRef.current = notification;
-  }, []);
+  }, [timeout]);
 
-  // Start the 10-second final countdown and then fire onIdle
-  const startCountdown = useCallback(() => {
-    setIsIdle(true);
-    setCountdown(10);
-
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-    }
-
-    countdownRef.current = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(countdownRef.current);
-          countdownRef.current = null;
-          if (onIdleRef.current) {
-            onIdleRef.current();
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, []);
-
-  // Clear all timers
-  const clearAllTimers = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    if (preWarningRef.current) {
-      clearTimeout(preWarningRef.current);
-      preWarningRef.current = null;
-    }
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-      countdownRef.current = null;
-    }
-  }, []);
-
-  // Start both the pre-warning timer and the idle timer
-  const startTimers = useCallback((duration) => {
-    // Clear existing timers
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (preWarningRef.current) clearTimeout(preWarningRef.current);
-
-    // Pre-warning notification at (duration - 30s), i.e. at 9:30 for a 10 min timeout
-    const preWarningDelay = duration - PRE_WARNING_OFFSET;
-    if (preWarningDelay > 0) {
-      preWarningRef.current = setTimeout(() => {
-        sendPreWarning();
-      }, preWarningDelay);
-    }
-
-    // Main idle timeout
-    timeoutRef.current = setTimeout(() => {
-      startCountdown();
-    }, duration);
-  }, [startCountdown, sendPreWarning]);
-
-  // Reset everything and restart the idle timer
-  const resetTimer = useCallback(() => {
+  const reset = useCallback(() => {
     setIsIdle(false);
     setCountdown(0);
     lastActivityRef.current = Date.now();
     preWarningSentRef.current = false;
+    idleTriggeredRef.current = false;
 
     // Dismiss the pre-warning notification if visible
     if (preWarningNotificationRef.current) {
@@ -163,148 +99,94 @@ const useIdleTimer = (timeout = 10 * 60 * 1000, onIdle) => {
       } catch (_) {}
       preWarningNotificationRef.current = null;
     }
+  }, []);
 
-    clearAllTimers();
-    startTimers(timeout);
-  }, [timeout, clearAllTimers, startTimers]);
+  useEffect(() => {
+    // Robust background-friendly interval to check time elapsed
+    // Checks every 2 seconds
+    const checkInterval = setInterval(() => {
+      if (idleTriggeredRef.current) return; // Already triggered idle
+
+      const elapsed = Date.now() - lastActivityRef.current;
+
+      // 1. Send warning at 9 minutes (if timeout is 10 mins)
+      if (elapsed >= (timeout - PRE_WARNING_OFFSET) && !preWarningSentRef.current) {
+        sendPreWarning();
+      }
+
+      // 2. Start the final 10-second UI countdown if we are extremely close
+      if (elapsed >= timeout && !isIdle) {
+        setIsIdle(true);
+        // We set 10 seconds for the UI modal, but if they are tabbed out, it will still trigger the actual logout shortly
+      }
+
+      if (isIdle) {
+        // If we are in the isIdle state, we handle the countdown
+        // We use Math.max to prevent negative countdowns
+        const uiCountdown = Math.max(0, 10 - Math.floor((elapsed - timeout) / 1000));
+        setCountdown(uiCountdown);
+
+        if (uiCountdown <= 0) {
+          idleTriggeredRef.current = true;
+          if (onIdleRef.current) {
+            onIdleRef.current();
+          }
+        }
+      }
+    }, 2000); // Check every 2 seconds to be highly responsive even in background tabs
+
+    return () => clearInterval(checkInterval);
+  }, [timeout, isIdle, sendPreWarning]);
 
   useEffect(() => {
     // Throttled activity handler — resets the timer on every user interaction
     // Throttled to once per 5 seconds for performance
     const handleActivity = () => {
-      // Don't reset if already in the idle countdown phase
-      if (isIdle) return;
+      if (idleTriggeredRef.current) return;
 
       const now = Date.now();
       if (throttleRef.current && now - throttleRef.current < 5000) {
-        // Just update the last activity timestamp but don't reset the timer
         lastActivityRef.current = now;
         return;
       }
+      
       throttleRef.current = now;
       lastActivityRef.current = now;
-      preWarningSentRef.current = false; // Reset notification flag on activity
-
-      // Dismiss the pre-warning notification if visible
-      if (preWarningNotificationRef.current) {
-        try {
-          preWarningNotificationRef.current.close();
-        } catch (_) {}
-        preWarningNotificationRef.current = null;
-      }
-
-      // Reset both timers
-      startTimers(timeout);
-    };
-
-    // Handle tab visibility changes — when the user leaves and comes back,
-    // check if they've been away longer than the timeout
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // User returned to the tab — check how long they were away
-        const elapsed = Date.now() - lastActivityRef.current;
-
-        if (elapsed >= timeout && !isIdle) {
-          // They were away longer than the idle timeout — trigger idle immediately
-          startCountdown();
-        } else if (elapsed >= (timeout - PRE_WARNING_OFFSET) && !isIdle) {
-          // Past the pre-warning mark — send notification and set remaining timer
-          sendPreWarning();
-          const remaining = timeout - elapsed;
-          if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          timeoutRef.current = setTimeout(() => {
-            startCountdown();
-          }, remaining);
-        } else if (!isIdle) {
-          // They came back within time — reset timers with remaining time
-          const remaining = timeout - elapsed;
-          startTimers(remaining);
-        }
-      } else {
-        // User left the tab — clear JS timers (browser may throttle them anyway)
-        // The real check happens when they come back via elapsed time comparison above
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-          timeoutRef.current = null;
-        }
-        if (preWarningRef.current) {
-          clearTimeout(preWarningRef.current);
-          preWarningRef.current = null;
+      
+      if (preWarningSentRef.current) {
+        preWarningSentRef.current = false;
+        // Dismiss the pre-warning notification if visible
+        if (preWarningNotificationRef.current) {
+          try {
+            preWarningNotificationRef.current.close();
+          } catch (_) {}
+          preWarningNotificationRef.current = null;
         }
       }
-    };
 
-    // Handle window blur/focus — catches Alt+Tab, clicking another window, etc.
-    const handleWindowBlur = () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-      if (preWarningRef.current) {
-        clearTimeout(preWarningRef.current);
-        preWarningRef.current = null;
+      // If user became active during the final 10 second countdown, reset it
+      if (isIdle) {
+        setIsIdle(false);
+        setCountdown(0);
       }
     };
 
-    const handleWindowFocus = () => {
-      if (isIdle) return;
-
-      const elapsed = Date.now() - lastActivityRef.current;
-      if (elapsed >= timeout) {
-        startCountdown();
-      } else if (elapsed >= (timeout - PRE_WARNING_OFFSET)) {
-        sendPreWarning();
-        const remaining = timeout - elapsed;
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(() => {
-          startCountdown();
-        }, remaining);
-      } else {
-        const remaining = timeout - elapsed;
-        startTimers(remaining);
-      }
-    };
-
-    // User activity events
-    const events = [
-      'mousemove',
-      'mousedown',
-      'click',
-      'keypress',
-      'keydown',
-      'keyup',
-      'touchstart',
-      'touchmove',
-      'scroll'
-    ];
-
-    events.forEach((event) => {
-      window.addEventListener(event, handleActivity);
-    });
-
-    // Tab/window visibility events
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleWindowBlur);
-    window.addEventListener('focus', handleWindowFocus);
-
-    // Start the initial timers
-    if (!isIdle) {
-      startTimers(timeout);
-    }
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('click', handleActivity);
+    window.addEventListener('scroll', handleActivity);
+    window.addEventListener('touchstart', handleActivity);
 
     return () => {
-      events.forEach((event) => {
-        window.removeEventListener(event, handleActivity);
-      });
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleWindowBlur);
-      window.removeEventListener('focus', handleWindowFocus);
-
-      clearAllTimers();
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('click', handleActivity);
+      window.removeEventListener('scroll', handleActivity);
+      window.removeEventListener('touchstart', handleActivity);
     };
-  }, [timeout, isIdle, startCountdown, startTimers, clearAllTimers, sendPreWarning]);
+  }, [isIdle]);
 
-  return { isIdle, reset: resetTimer, countdown };
+  return { isIdle, reset, countdown };
 };
 
 export default useIdleTimer;

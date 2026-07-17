@@ -85,6 +85,7 @@ const Register = () => {
             <input
               type="email"
               name="employee_email"
+              autoComplete="username"
               value={formData.employee_email}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -99,6 +100,7 @@ const Register = () => {
             <input
               type="password"
               name="employee_password"
+              autoComplete="new-password"
               value={formData.employee_password}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"

@@ -68,29 +68,7 @@ const SessionManager = ({ children }) => {
     window.addEventListener('click', handleActivity);
     window.addEventListener('scroll', handleActivity);
 
-    // Checks system idle time from the backend
-    const checkSystemIdle = async () => {
-      try {
-        const response = await api.get('/api/attendance/system-idle', authConfig());
-        if (response.data && response.data.isSupported) {
-          const sysIdleSeconds = response.data.idleTime;
-          // If system idle time is low, the user is active on the OS/system
-          if (sysIdleSeconds < 30) {
-            lastActivityRef.current = Date.now() - (sysIdleSeconds * 1000);
-            warningSent = false;
-          }
-        }
-      } catch (err) {
-        console.error('Failed to check system idle time:', err);
-      }
-    };
-
-    const interval = setInterval(async () => {
-      // If the window is blurred, poll the system-level idle time from backend
-      if (!document.hasFocus()) {
-        await checkSystemIdle();
-      }
-
+    const interval = setInterval(() => {
       const elapsed = Date.now() - lastActivityRef.current;
       if (elapsed >= threshold && !warningSent) {
         warningSent = true;

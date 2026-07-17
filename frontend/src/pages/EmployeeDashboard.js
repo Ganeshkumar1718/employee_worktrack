@@ -12,7 +12,11 @@ import {
   Bell,
   MessageSquare,
   AlertTriangle,
-  XCircle
+  XCircle,
+  Users,
+  Moon,
+  Sun,
+  Menu
 } from 'lucide-react';
 import TaskChatModal from '../components/TaskChatModal';
 import { calculateLiveWorkingTime } from '../utils/timeFormatter';
@@ -79,6 +83,20 @@ const EmployeeDashboard = () => {
   });
   const [selectedTaskForChat, setSelectedTaskForChat] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('darkMode') === 'true';
+  });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('darkMode', 'true');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('darkMode', 'false');
+    }
+  }, [isDarkMode]);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const timerRef = useRef(null);
   const isInitialTasksLoaded = useRef(false);
@@ -396,128 +414,169 @@ const EmployeeDashboard = () => {
   // Dynamic metrics calculation
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-md relative z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-800 text-center sm:text-left">Employee Dashboard</h1>
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto">
-            <span className="text-gray-600">Welcome, {user?.employee_name}</span>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-blue-700 hover:bg-blue-100"
-            >
-              Profile
-            </button>
-            <div className="relative" ref={notificationsRef}>
-              <button 
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 rounded-full hover:bg-gray-100 relative"
-              >
-                <Bell className="w-6 h-6 text-gray-600" />
-                {notificationCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
-                    {notificationCount}
-                  </span>
-                )}
-              </button>
-              
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
-                  <div className="p-4 border-b">
-                    <h3 className="font-semibold text-gray-800">Notifications</h3>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {notificationTasks.length > 0 ? (
-                      notificationTasks.map(task => (
-                        <div key={task.task_id} className="p-4 border-b hover:bg-gray-50">
-                          <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">New Task Assigned</p>
-                          <p className="text-sm font-medium text-gray-800">{task.title}</p>
-                          <p className="text-xs text-gray-500">Assigned by: {task.admin_name}</p>
-                          <div className="mt-2 flex gap-3">
-                            <button 
-                              onClick={() => { 
-                                setActiveTab('tasks'); 
-                                setShowNotifications(false); 
-                                markAsRead(`task-${task.task_id}`); 
-                              }} 
-                              className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                            >
-                              View Task
-                            </button>
-                            <button 
-                              onClick={() => markAsRead(`task-${task.task_id}`)} 
-                              className="text-xs text-red-500 hover:text-red-700 font-medium"
-                            >
-                              Mark as Read
-                            </button>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center text-sm text-gray-500">No new tasks</div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-            <button
-              onClick={handleLogoutClick}
-              className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 flex flex-col md:flex-row transition-colors duration-300">
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
-      {/* Navigation */}
-      <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-4 overflow-x-auto">
-            {['overview', 'attendance', 'leaves', 'salary', 'tasks', 'feedback', 'profile'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-3 font-medium capitalize ${
-                  activeTab === tab
-                    ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+      {/* Sidebar Navigation */}
+      <nav className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white dark:bg-slate-950 flex flex-col shadow-2xl z-50 transition-transform duration-300 border-r border-slate-200 dark:border-slate-800 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <div className="p-6 border-b dark:border-slate-700 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-3">
+            <div className="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-500/30">
+              <Users className="w-6 h-6" />
+            </div>
+            WorkTrack
+          </h2>
+        </div>
+        <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-2 custom-scrollbar">
+          <p className="px-3 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Menu</p>
+          {['overview', 'attendance', 'leaves', 'salary', 'tasks', 'feedback', 'profile'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`w-full text-left px-4 py-3.5 rounded-xl font-medium capitalize transition-all duration-300 flex items-center gap-3 ${
+                activeTab === tab
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-900/40 translate-x-1'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-blue-600 dark:hover:text-slate-200'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        <div className="p-6 border-t dark:border-slate-700 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+          <button
+            onClick={handleLogoutClick}
+            className="flex w-full items-center justify-center gap-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white px-4 py-3 rounded-xl transition-all duration-300 font-medium"
+          >
+            <LogOut className="w-5 h-5" />
+            Logout
+          </button>
         </div>
       </nav>
 
-      {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {activeTab === 'overview' && (
-          <div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+        {/* Header */}
+        <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b dark:border-slate-800 sticky top-0 z-30 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center justify-between w-full sm:w-auto">
+              <button 
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="md:hidden p-2 -ml-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 capitalize">
+                {activeTab} Dashboard
+              </h1>
+            </div>
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 w-full sm:w-auto">
+              <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                  {user?.employee_name?.charAt(0)}
+                </div>
+                <span className="text-slate-700 dark:text-slate-300 font-medium hidden sm:block">{user?.employee_name}</span>
+              </div>
+              
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-200"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-slate-600" />}
+              </button>
+
+              <div className="relative" ref={notificationsRef}>
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 relative transition-all duration-200"
+                >
+                  <Bell className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                  {notificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full ring-2 ring-white">
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+                
+                {showNotifications && (
+                  <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden">
+                    <div className="p-4 border-b dark:border-slate-700 dark:border-slate-700 bg-slate-50">
+                      <h3 className="font-semibold text-slate-800">Notifications</h3>
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                      {notificationTasks.length > 0 ? (
+                        notificationTasks.map(task => (
+                          <div key={task.task_id} className="p-4 border-b dark:border-slate-700 dark:border-slate-700 hover:bg-slate-50 transition-colors">
+                            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">New Task Assigned</p>
+                            <p className="text-sm font-bold text-slate-800">{task.title}</p>
+                            <p className="text-xs text-slate-600 mt-1">Assigned by: {task.admin_name}</p>
+                            <div className="mt-3 flex gap-2">
+                              <button 
+                                onClick={() => { 
+                                  setActiveTab('tasks'); 
+                                  setShowNotifications(false); 
+                                  markAsRead(`task-${task.task_id}`); 
+                                }} 
+                                className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-xs text-blue-700 hover:bg-blue-100 rounded-lg font-medium transition-colors"
+                              >
+                                View Task
+                              </button>
+                              <button 
+                                onClick={() => markAsRead(`task-${task.task_id}`)} 
+                                className="px-3 py-1.5 bg-slate-50 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
+                              >
+                                Mark as Read
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-8 flex flex-col items-center justify-center text-center">
+                          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3">
+                            <Bell className="w-6 h-6 text-slate-400" />
+                          </div>
+                          <p className="text-sm font-medium text-slate-500">No new notifications</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full">
+          {activeTab === 'overview' && (
+            <div>
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
               {!todayAttendance || !todayAttendance.login_time || todayAttendance.logout_time ? (
-                <div className="bg-white p-6 rounded-xl shadow-md space-y-5">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md space-y-5">
                   <div>
                     <h3 className="text-lg font-semibold mb-1">Clock In</h3>
-                    <p className="text-sm text-gray-600">Choose your work mode and decide whether to capture your live location.</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-300">Choose your work mode and decide whether to capture your live location.</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setWorkMode('WFO')}
-                      className={`p-4 rounded-xl border text-left ${workMode === 'WFO' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}
+                      className={`p-4 rounded-xl border dark:border-slate-700 text-left ${workMode === 'WFO' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 bg-gray-50 dark:bg-slate-900'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <Building className={`w-5 h-5 ${workMode === 'WFO' ? 'text-blue-600' : 'text-gray-500'}`} />
+                        <Building className={`w-5 h-5 ${workMode === 'WFO' ? 'text-blue-600' : 'text-gray-500 dark:text-slate-400'}`} />
                         <div>
                           <p className="font-semibold">Work From Office</p>
-                          <p className="text-sm text-gray-600">Office attendance with location capture.</p>
+                          <p className="text-sm text-gray-600 dark:text-slate-300">Office attendance with location capture.</p>
                         </div>
                       </div>
                     </button>
@@ -525,19 +584,19 @@ const EmployeeDashboard = () => {
                     <button
                       type="button"
                       onClick={() => setWorkMode('WFH')}
-                      className={`p-4 rounded-xl border text-left ${workMode === 'WFH' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}
+                      className={`p-4 rounded-xl border dark:border-slate-700 text-left ${workMode === 'WFH' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 bg-gray-50 dark:bg-slate-900'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <Home className={`w-5 h-5 ${workMode === 'WFH' ? 'text-blue-600' : 'text-gray-500'}`} />
+                        <Home className={`w-5 h-5 ${workMode === 'WFH' ? 'text-blue-600' : 'text-gray-500 dark:text-slate-400'}`} />
                         <div>
                           <p className="font-semibold">Work From Home</p>
-                          <p className="text-sm text-gray-600">Remote work without office check-in.</p>
+                          <p className="text-sm text-gray-600 dark:text-slate-300">Remote work without office check-in.</p>
                         </div>
                       </div>
                     </button>
                   </div>
 
-                  <label className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 cursor-pointer">
+                  <label className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 dark:bg-slate-900 p-4 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={captureLocation}
@@ -549,8 +608,8 @@ const EmployeeDashboard = () => {
                     />
                     <div>
                       <p className="font-semibold">Enable location</p>
-                      <p className="text-sm text-gray-600">Capture your current coordinates when you clock in.</p>
-                      <p className="text-xs text-gray-500 mt-1">{locationStatus}</p>
+                      <p className="text-sm text-gray-600 dark:text-slate-300">Capture your current coordinates when you clock in.</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{locationStatus}</p>
                     </div>
                   </label>
 
@@ -563,14 +622,14 @@ const EmployeeDashboard = () => {
                   </button>
                 </div>
               ) : (
-                <div className="bg-white p-6 rounded-xl shadow-md space-y-5">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md space-y-5">
                   <div>
                     <h3 className="text-lg font-semibold mb-1">Currently Working</h3>
-                    <p className="text-sm text-gray-600">You clocked in at {todayAttendance.login_time}</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-300">You clocked in at {todayAttendance.login_time}</p>
                   </div>
 
-                  <div className="bg-blue-50 p-6 rounded-xl text-center">
-                    <p className="text-sm text-gray-600 mb-2">Working Time</p>
+                  <div className="bg-blue-50 dark:bg-blue-900/30 p-6 rounded-xl text-center">
+                    <p className="text-sm text-gray-600 dark:text-slate-300 mb-2">Working Time</p>
                     <p className="text-3xl font-bold text-blue-600">{liveWorkingTime.totalWorkingTime}</p>
                   </div>
 
@@ -587,31 +646,31 @@ const EmployeeDashboard = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Clock className="w-5 h-5 text-blue-600" />
-                  <span className="text-gray-600">Total Working Time</span>
+                  <span className="text-gray-600 dark:text-slate-300">Total Working Time</span>
                 </div>
                 <p className="text-2xl font-bold">{stats.total_working_time || '0 Hours 0 Minutes 0 Seconds'}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Calendar className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-600">Total Days</span>
+                  <span className="text-gray-600 dark:text-slate-300">Total Days</span>
                 </div>
                 <p className="text-2xl font-bold">{stats.total_days || 0}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Building className="w-5 h-5 text-purple-600" />
-                  <span className="text-gray-600">WFO Days</span>
+                  <span className="text-gray-600 dark:text-slate-300">WFO Days</span>
                 </div>
                 <p className="text-2xl font-bold">{stats.wfo_days || 0}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Home className="w-5 h-5 text-orange-600" />
-                  <span className="text-gray-600">WFH Days</span>
+                  <span className="text-gray-600 dark:text-slate-300">WFH Days</span>
                 </div>
                 <p className="text-2xl font-bold">{stats.wfh_days || 0}</p>
               </div>
@@ -619,31 +678,31 @@ const EmployeeDashboard = () => {
 
             {/* Leave Statistics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Calendar className="w-5 h-5 text-blue-600" />
-                  <span className="text-gray-600">Applied Leaves</span>
+                  <span className="text-gray-600 dark:text-slate-300">Applied Leaves</span>
                 </div>
                 <p className="text-2xl font-bold">{leaveStats.total_leaves || 0}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Calendar className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-600">Approved Leaves</span>
+                  <span className="text-gray-600 dark:text-slate-300">Approved Leaves</span>
                 </div>
                 <p className="text-2xl font-bold">{leaveStats.approved_leaves || 0}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Calendar className="w-5 h-5 text-yellow-600" />
-                  <span className="text-gray-600">Pending Leaves</span>
+                  <span className="text-gray-600 dark:text-slate-300">Pending Leaves</span>
                 </div>
                 <p className="text-2xl font-bold">{leaveStats.pending_leaves || 0}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Calendar className="w-5 h-5 text-red-600" />
-                  <span className="text-gray-600">Rejected Leaves</span>
+                  <span className="text-gray-600 dark:text-slate-300">Rejected Leaves</span>
                 </div>
                 <p className="text-2xl font-bold">{leaveStats.rejected_leaves || 0}</p>
               </div>
@@ -651,19 +710,19 @@ const EmployeeDashboard = () => {
 
             {/* Today's Status */}
             {todayAttendance && (
-              <div className="bg-white p-6 rounded-xl shadow-md mb-8">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md mb-8">
                 <h3 className="text-lg font-semibold mb-4">Today's Status</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <p className="text-gray-600">Latest Login Time</p>
+                    <p className="text-gray-600 dark:text-slate-300">Latest Login Time</p>
                     <p className="font-semibold">{todayAttendance.login_time}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Latest Logout Time</p>
+                    <p className="text-gray-600 dark:text-slate-300">Latest Logout Time</p>
                     <p className="font-semibold">{todayAttendance.logout_time || 'Not yet'}</p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Current Session Working Time</p>
+                    <p className="text-gray-600 dark:text-slate-300">Current Session Working Time</p>
                     <p className="font-semibold">
                       {todayAttendance.logout_time 
                         ? todayAttendance.total_working_time || '0 Hours 0 Minutes 0 Seconds'
@@ -671,7 +730,7 @@ const EmployeeDashboard = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-600">Location</p>
+                    <p className="text-gray-600 dark:text-slate-300">Location</p>
                     <p className="font-semibold">
                       {todayAttendance.latitude && todayAttendance.longitude
                         ? `${Number(todayAttendance.latitude).toFixed(4)}, ${Number(todayAttendance.longitude).toFixed(4)}`
@@ -685,20 +744,20 @@ const EmployeeDashboard = () => {
         )}
 
         {activeTab === 'attendance' && (
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="p-6 border-b">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+            <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700">
               <h2 className="text-xl font-semibold">Attendance History</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-slate-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Login</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Logout</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hours</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Login</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Logout</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Hours</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Mode</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Location</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -710,12 +769,12 @@ const EmployeeDashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap">{record.total_working_time || '0 Hours 0 Minutes 0 Seconds'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs ${
-                          record.work_mode === 'WFO' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
+                          record.work_mode === 'WFO' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800 dark:text-green-300'
                         }`}>
                           {record.work_mode}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-slate-300">
                         {record.latitude && record.longitude
                           ? `${Number(record.latitude).toFixed(4)}, ${Number(record.longitude).toFixed(4)}`
                           : 'Not captured'}
@@ -731,15 +790,15 @@ const EmployeeDashboard = () => {
         {activeTab === 'leaves' && (
           <div>
             {/* Leave Application Form */}
-            <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 mb-8">
               <h2 className="text-xl font-semibold mb-4">Apply for Leave</h2>
               <form onSubmit={handleLeaveSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Leave Type</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Leave Type</label>
                   <select
                     value={leaveForm.leave_type}
                     onChange={(e) => setLeaveForm({ ...leaveForm, leave_type: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                   >
                     <option value="sick">Sick Leave</option>
                     <option value="casual">Casual Leave</option>
@@ -747,31 +806,31 @@ const EmployeeDashboard = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Start Date</label>
                   <input
                     type="date"
                     value={leaveForm.start_date}
                     onChange={(e) => setLeaveForm({ ...leaveForm, start_date: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">End Date</label>
                   <input
                     type="date"
                     value={leaveForm.end_date}
                     onChange={(e) => setLeaveForm({ ...leaveForm, end_date: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     required
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Reason</label>
                   <textarea
                     value={leaveForm.reason}
                     onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     rows="3"
                     required
                   />
@@ -788,21 +847,21 @@ const EmployeeDashboard = () => {
             </div>
 
             {/* Leave History */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="p-6 border-b">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700">
                 <h2 className="text-xl font-semibold">Leave History</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-slate-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Number of Days</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Applied Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Start Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">End Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Number of Days</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Reason</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Applied Date</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -815,9 +874,9 @@ const EmployeeDashboard = () => {
                         <td className="px-6 py-4 whitespace-nowrap max-w-xs truncate">{leave.reason}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 rounded-full text-xs ${
-                            leave.status === 'approved' ? 'bg-green-100 text-green-800' :
-                            leave.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                            'bg-yellow-100 text-yellow-800'
+                            leave.status === 'approved' ? 'bg-green-100 text-green-800 dark:text-green-300' :
+                            leave.status === 'rejected' ? 'bg-red-100 text-red-800 dark:text-red-300' :
+                            'bg-yellow-100 text-yellow-800 dark:text-yellow-300'
                           }`}>
                             {leave.status}
                           </span>
@@ -833,19 +892,19 @@ const EmployeeDashboard = () => {
         )}
 
         {activeTab === 'salary' && (
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="p-6 border-b">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+            <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700">
               <h2 className="text-xl font-semibold">Salary Details</h2>
-              <p className="text-gray-600 mt-2">Hourly Rate: ₹{user?.hourly_rate?.toFixed(2)}</p>
+              <p className="text-gray-600 dark:text-slate-300 mt-2">Hourly Rate: ₹{user?.hourly_rate?.toFixed(2)}</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-slate-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Month</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Working Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hourly Rate</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salary Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Month</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Working Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Hourly Rate</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Salary Amount</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -865,40 +924,40 @@ const EmployeeDashboard = () => {
 
         {activeTab === 'tasks' && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">My Assigned Tasks</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100 mb-6">My Assigned Tasks</h2>
             {tasks.length === 0 && (
-              <div className="bg-white p-6 rounded-xl shadow-md text-center text-gray-500">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md text-center text-gray-500 dark:text-slate-400">
                 You have no assigned tasks at the moment.
               </div>
             )}
             {tasks.map(task => (
-              <div key={task.task_id} className={`bg-white rounded-xl shadow-md p-6 border-l-4 ${task.status === 'completed' ? 'border-green-500' : 'border-yellow-500'}`}>
+              <div key={task.task_id} className={`bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border-l-4 ${task.status === 'completed' ? 'border-green-500' : 'border-yellow-500'}`}>
                 <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
                   <div>
                     <h3 className="text-xl font-semibold">{task.title}</h3>
-                    <p className="text-sm text-gray-500">Assigned by {task.admin_name} on {new Date(task.created_at).toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">Assigned by {task.admin_name} on {new Date(task.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSelectedTaskForChat(task)}
-                      className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 px-3 py-1.5 rounded-lg font-medium transition-colors text-sm"
+                      className="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 hover:bg-blue-100 hover:text-blue-800 dark:text-blue-300 px-3 py-1.5 rounded-lg font-medium transition-colors text-sm"
                     >
                       <MessageSquare className="w-4 h-4" /> Discussion
                     </button>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${task.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${task.status === 'completed' ? 'bg-green-100 text-green-800 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:text-yellow-300'}`}>
                       {task.status.toUpperCase()}
                     </span>
                   </div>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg mb-4 text-gray-700 whitespace-pre-wrap">
+                <div className="bg-gray-50 dark:bg-slate-900 p-4 rounded-lg mb-4 text-gray-700 dark:text-slate-200 whitespace-pre-wrap">
                   {task.description}
                 </div>
                 
                 {task.status === 'pending' ? (
                   <div className="space-y-3">
-                    <label className="block text-sm font-medium text-gray-700">Your Reply Message:</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-200">Your Reply Message:</label>
                     <textarea
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500"
                       rows="2"
                       placeholder="Type your reply to the admin here..."
                       value={taskReplies[task.task_id] || ''}
@@ -912,8 +971,8 @@ const EmployeeDashboard = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="bg-green-50 border border-green-200 p-4 rounded-lg mt-4">
-                    <p className="text-sm font-semibold text-green-800 mb-1">Your Reply:</p>
+                  <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 p-4 rounded-lg mt-4">
+                    <p className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">Your Reply:</p>
                     <p className="text-green-700 italic">"{task.employee_reply}"</p>
                     <p className="text-xs text-green-600 mt-2">Completed on {new Date(task.completed_at).toLocaleString()}</p>
                   </div>
@@ -924,18 +983,18 @@ const EmployeeDashboard = () => {
         )}
 
         {activeTab === 'feedback' && (
-          <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto border border-gray-100">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Submit Feedback / Suggestion</h2>
-            <p className="text-gray-600 mb-6 text-sm leading-relaxed">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 max-w-2xl mx-auto border border-gray-100">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-slate-100">Submit Feedback / Suggestion</h2>
+            <p className="text-gray-600 dark:text-slate-300 mb-6 text-sm leading-relaxed">
               Your feedback is valuable to us. Please share any suggestions, issues, or ideas for improving our workplace environment or processes.
             </p>
             <form onSubmit={handleFeedbackSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Feedback Details</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Feedback Details</label>
                 <textarea
                   value={feedbackText}
                   onChange={(e) => setFeedbackText(e.target.value)}
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                   rows="6"
                   placeholder="Describe your suggestion or feedback in detail..."
                   required
@@ -956,91 +1015,91 @@ const EmployeeDashboard = () => {
         )}
 
         {activeTab === 'profile' && (
-          <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto border border-gray-100">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Edit Profile</h2>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 max-w-2xl mx-auto border border-gray-100">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-slate-100">Edit Profile</h2>
             <form onSubmit={handleProfileFormSubmit} className="space-y-4">
               {profileError && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-700">
                   {profileError}
                 </div>
               )}
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Full Name</label>
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Full Name</label>
                 <input
                   type="text"
                   value={profileForm.employee_name}
                   onChange={(e) => setProfileForm({ ...profileForm, employee_name: e.target.value })}
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Email</label>
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Email</label>
                 <input
                   type="email"
                   value={profileForm.employee_email}
                   onChange={(e) => setProfileForm({ ...profileForm, employee_email: e.target.value })}
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">Department</label>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Department</label>
                   <input
                     type="text"
                     value={profileForm.department}
                     disabled
-                    className="w-full px-4 py-3 border rounded-lg bg-gray-100 cursor-not-allowed text-gray-500"
+                    className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-gray-100 dark:bg-slate-800/50 cursor-not-allowed text-gray-500 dark:text-slate-400"
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">Designation</label>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Designation</label>
                   <input
                     type="text"
                     value={profileForm.designation}
                     disabled
-                    className="w-full px-4 py-3 border rounded-lg bg-gray-100 cursor-not-allowed text-gray-500"
+                    className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-gray-100 dark:bg-slate-800/50 cursor-not-allowed text-gray-500 dark:text-slate-400"
                   />
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-1">Note: Department and Designation can only be changed by an administrator.</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Note: Department and Designation can only be changed by an administrator.</p>
 
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">Change Password</p>
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 dark:bg-slate-900 p-4">
+                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-slate-400">Change Password</p>
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">Current Password</label>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Current Password</label>
                     <input
                       type="password"
                       value={profileForm.current_password}
                       onChange={(e) => setProfileForm({ ...profileForm, current_password: e.target.value })}
-                      className="w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                      className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                       placeholder="Enter current password to change it"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">New Password</label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">New Password</label>
                       <input
                         type="password"
                         value={profileForm.new_password}
                         onChange={(e) => setProfileForm({ ...profileForm, new_password: e.target.value })}
-                        className="w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                        className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                         placeholder="Leave blank"
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">Confirm Password</label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Confirm Password</label>
                       <input
                         type="password"
                         value={profileForm.confirm_password}
                         onChange={(e) => setProfileForm({ ...profileForm, confirm_password: e.target.value })}
-                        className="w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                        className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                         placeholder="Repeat new password"
                       />
                     </div>
@@ -1060,9 +1119,10 @@ const EmployeeDashboard = () => {
           </div>
         )}
       </main>
+      </div>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 z-50 animate-bounce border text-white transition-all duration-300 ${
+        <div className={`fixed bottom-6 right-6 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 z-50 animate-bounce border dark:border-slate-700 text-white transition-all duration-300 ${
           toast.type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-400' :
           toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-rose-600 border-red-400' :
           toast.type === 'warning' ? 'bg-gradient-to-r from-amber-500 to-orange-600 border-amber-400' :

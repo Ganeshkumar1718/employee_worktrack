@@ -14,7 +14,10 @@ import {
   Bell,
   CheckSquare,
   MessageSquare,
-  AlertTriangle
+  AlertTriangle,
+  Moon,
+  Sun,
+  Menu
 } from 'lucide-react';
 import TaskChatModal from '../components/TaskChatModal';
 import { notifySuccess, notifyError, notifyWarning, notifyInfo, requestNotificationPermission } from '../utils/notifications';
@@ -57,6 +60,21 @@ const AdminDashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedTaskForChat, setSelectedTaskForChat] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    return localStorage.getItem('darkMode') === 'true';
+  });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('darkMode', 'true');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('darkMode', 'false');
+    }
+  }, [isDarkMode]);
+
   const isInitialTasksLoaded = useRef(false);
   const notificationsRef = useRef(null);
 
@@ -353,198 +371,242 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-md relative z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-800 text-center sm:text-left">Admin Dashboard</h1>
-          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 sm:gap-4 w-full sm:w-auto">
-            <span className="text-gray-600">Welcome, {user?.employee_name}</span>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-blue-700 hover:bg-blue-100"
-            >
-              Profile
-            </button>
-            <div className="relative" ref={notificationsRef}>
-              <button 
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 rounded-full hover:bg-gray-100 relative"
-              >
-                <Bell className="w-6 h-6 text-gray-600" />
-                {notificationCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full">
-                    {notificationCount}
-                  </span>
-                )}
-              </button>
-              
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
-                  <div className="p-4 border-b">
-                    <h3 className="font-semibold text-gray-800">Notifications</h3>
-                  </div>
-                  <div className="p-4 border-b bg-blue-50">
-                    <p className="text-sm text-blue-800 font-medium">
-                      <span className="w-2 h-2 inline-block bg-green-500 rounded-full mr-2"></span>
-                      {onlineEmployeesCount} employees currently online
-                    </p>
-                  </div>
-                  <div className="max-h-64 overflow-y-auto">
-                    {notificationsPendingLeaves.length > 0 && (
-                      <div className="bg-gray-100 px-4 py-1 text-xs font-bold text-gray-500 uppercase">Leaves</div>
-                    )}
-                    {notificationsPendingLeaves.map(leave => (
-                      <div key={`leave-${leave.leave_id}`} className="p-4 border-b hover:bg-gray-50">
-                        <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Leave Request Pending</p>
-                        <p className="text-sm font-medium text-gray-800">{leave.employee_name}</p>
-                        <p className="text-xs text-gray-500">Requested {leave.leave_type} leave from {leave.start_date} to {leave.end_date}</p>
-                        <div className="mt-2 flex gap-3">
-                          <button 
-                            onClick={() => { 
-                              setActiveTab('leaves'); 
-                              setShowNotifications(false); 
-                              markAsRead(`leave-${leave.leave_id}`); 
-                            }} 
-                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                          >
-                            View in Leaves
-                          </button>
-                          <button 
-                            onClick={() => markAsRead(`leave-${leave.leave_id}`)} 
-                            className="text-xs text-red-500 hover:text-red-700 font-medium"
-                          >
-                            Mark as Read
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {notificationsCompletedTasks.length > 0 && (
-                      <div className="bg-gray-100 px-4 py-1 text-xs font-bold text-gray-500 uppercase mt-2">Completed Tasks</div>
-                    )}
-                    {notificationsCompletedTasks.map(task => (
-                      <div key={`task-${task.task_id}`} className="p-4 border-b hover:bg-gray-50">
-                        <p className="text-xs font-semibold text-green-600 uppercase tracking-wider mb-1">Task Completed</p>
-                        <p className="text-sm font-medium text-gray-800">{task.employee_name}</p>
-                        <p className="text-xs text-gray-500">Completed task: "{task.title}"</p>
-                        <div className="mt-2 flex gap-3">
-                          <button 
-                            onClick={() => { 
-                              setActiveTab('tasks'); 
-                              setShowNotifications(false); 
-                              markAsRead(`task-${task.task_id}`); 
-                            }} 
-                            className="text-xs text-green-600 hover:text-green-800 font-medium"
-                          >
-                            View Task
-                          </button>
-                          <button 
-                            onClick={() => markAsRead(`task-${task.task_id}`)} 
-                            className="text-xs text-red-500 hover:text-red-700 font-medium"
-                          >
-                            Mark as Read
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 flex flex-col md:flex-row transition-colors duration-300">
+      {/* Mobile Backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
 
-                    {notificationsPendingLeaves.length === 0 && notificationsCompletedTasks.length === 0 && (
-                      <div className="p-4 text-center text-sm text-gray-500">No new notifications</div>
-                    )}
-                  </div>
-                </div>
-              )}
+      {/* Sidebar Navigation */}
+      <nav className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white dark:bg-slate-950 flex flex-col shadow-2xl z-50 transition-transform duration-300 border-r border-slate-200 dark:border-slate-800 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <div className="p-6 border-b dark:border-slate-700 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-3">
+            <div className="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-500/30">
+              <Users className="w-6 h-6" />
             </div>
-            <button
-              onClick={handleLogoutClick}
-              className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
-          </div>
+            WorkTrack
+          </h2>
         </div>
-      </header>
-
-      {/* Navigation */}
-      <nav className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-4 overflow-x-auto">
-            {['overview', 'employees', 'attendance', 'leaves', 'salary', 'tasks', 'feedback', 'profile'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-3 font-medium capitalize whitespace-nowrap ${
-                  activeTab === tab
-                    ? 'border-b-2 border-blue-600 text-blue-600'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+        <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-2 custom-scrollbar">
+          <p className="px-3 text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Menu</p>
+          {['overview', 'employees', 'attendance', 'leaves', 'salary', 'tasks', 'feedback', 'profile'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`w-full text-left px-4 py-3.5 rounded-xl font-medium capitalize transition-all duration-300 flex items-center gap-3 ${
+                activeTab === tab
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 dark:shadow-blue-900/40 translate-x-1'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 hover:text-blue-600 dark:hover:text-slate-200'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        <div className="p-6 border-t dark:border-slate-700 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+          <button
+            onClick={handleLogoutClick}
+            className="flex w-full items-center justify-center gap-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white px-4 py-3 rounded-xl transition-all duration-300 font-medium"
+          >
+            <LogOut className="w-5 h-5" />
+            Logout
+          </button>
         </div>
       </nav>
 
-      {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {activeTab === 'overview' && (
-          <div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+        {/* Header */}
+        <header className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b dark:border-slate-800 sticky top-0 z-30 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="flex items-center justify-between w-full sm:w-auto">
+              <button 
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="md:hidden p-2 -ml-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 capitalize">
+                {activeTab} Dashboard
+              </h1>
+            </div>
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-4 w-full sm:w-auto">
+              <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-full">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                  {user?.employee_name?.charAt(0)}
+                </div>
+                <span className="text-slate-700 dark:text-slate-300 font-medium hidden sm:block">{user?.employee_name}</span>
+              </div>
+              
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-200"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-slate-600" />}
+              </button>
+
+              <div className="relative" ref={notificationsRef}>
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 relative transition-all duration-200"
+                >
+                  <Bell className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                  {notificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full ring-2 ring-white">
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+                
+                {showNotifications && (
+                  <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden">
+                    <div className="p-4 border-b dark:border-slate-700 dark:border-slate-700 bg-slate-50">
+                      <h3 className="font-semibold text-slate-800">Notifications</h3>
+                    </div>
+                    <div className="p-4 border-b dark:border-slate-700 dark:border-slate-700 bg-blue-50 dark:bg-blue-900/30/50">
+                      <p className="text-sm text-blue-700 font-medium flex items-center gap-2">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        </span>
+                        {onlineEmployeesCount} employees online
+                      </p>
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                      {notificationsPendingLeaves.length > 0 && (
+                        <div className="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 uppercase sticky top-0">Leaves</div>
+                      )}
+                      {notificationsPendingLeaves.map(leave => (
+                        <div key={`leave-${leave.leave_id}`} className="p-4 border-b dark:border-slate-700 dark:border-slate-700 hover:bg-slate-50 transition-colors">
+                          <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Leave Request Pending</p>
+                          <p className="text-sm font-bold text-slate-800">{leave.employee_name}</p>
+                          <p className="text-xs text-slate-600 mt-1">Requested {leave.leave_type} leave from {leave.start_date} to {leave.end_date}</p>
+                          <div className="mt-3 flex gap-2">
+                            <button 
+                              onClick={() => { 
+                                setActiveTab('leaves'); 
+                                setShowNotifications(false); 
+                                markAsRead(`leave-${leave.leave_id}`); 
+                              }} 
+                              className="px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-xs text-blue-600 hover:bg-blue-100 rounded-lg font-medium transition-colors"
+                            >
+                              View in Leaves
+                            </button>
+                            <button 
+                              onClick={() => markAsRead(`leave-${leave.leave_id}`)} 
+                              className="px-3 py-1.5 bg-slate-50 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
+                            >
+                              Mark as Read
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {notificationsCompletedTasks.length > 0 && (
+                        <div className="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 uppercase sticky top-0 mt-2">Completed Tasks</div>
+                      )}
+                      {notificationsCompletedTasks.map(task => (
+                        <div key={`task-${task.task_id}`} className="p-4 border-b dark:border-slate-700 dark:border-slate-700 hover:bg-slate-50 transition-colors">
+                          <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Task Completed</p>
+                          <p className="text-sm font-bold text-slate-800">{task.employee_name}</p>
+                          <p className="text-xs text-slate-600 mt-1">Completed task: "{task.title}"</p>
+                          <div className="mt-3 flex gap-2">
+                            <button 
+                              onClick={() => { 
+                                setActiveTab('tasks'); 
+                                setShowNotifications(false); 
+                                markAsRead(`task-${task.task_id}`); 
+                              }} 
+                              className="px-3 py-1.5 bg-emerald-50 text-xs text-emerald-700 hover:bg-emerald-100 rounded-lg font-medium transition-colors"
+                            >
+                              View Task
+                            </button>
+                            <button 
+                              onClick={() => markAsRead(`task-${task.task_id}`)} 
+                              className="px-3 py-1.5 bg-slate-50 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
+                            >
+                              Mark as Read
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                      {notificationsPendingLeaves.length === 0 && notificationsCompletedTasks.length === 0 && (
+                        <div className="p-8 flex flex-col items-center justify-center text-center">
+                          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-3">
+                            <Bell className="w-6 h-6 text-slate-400" />
+                          </div>
+                          <p className="text-sm font-medium text-slate-500">No new notifications</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full">
+          {activeTab === 'overview' && (
+            <div>
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Users className="w-5 h-5 text-blue-600" />
-                  <span className="text-gray-600">Total Employees</span>
+                  <span className="text-gray-600 dark:text-slate-300">Total Employees</span>
                 </div>
                 <p className="text-3xl font-bold">{stats.totalEmployees}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <CheckCircle className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-600">Present Today</span>
+                  <span className="text-gray-600 dark:text-slate-300">Present Today</span>
                 </div>
                 <p className="text-3xl font-bold">{stats.presentToday}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <FileText className="w-5 h-5 text-yellow-600" />
-                  <span className="text-gray-600">Pending Leaves</span>
+                  <span className="text-gray-600 dark:text-slate-300">Pending Leaves</span>
                 </div>
                 <p className="text-3xl font-bold">{stats.pendingLeaves}</p>
               </div>
-              <div className="bg-white p-6 rounded-xl shadow-md">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <DollarSign className="w-5 h-5 text-purple-600" />
-                  <span className="text-gray-600">Total Salary</span>
+                  <span className="text-gray-600 dark:text-slate-300">Total Salary</span>
                 </div>
                 <p className="text-3xl font-bold">₹{stats.totalSalary?.toFixed(2)}</p>
               </div>
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6">
               <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <button
                   onClick={() => setActiveTab('employees')}
-                  className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50"
+                  className="flex items-center gap-3 p-4 border dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:bg-slate-900"
                 >
                   <Users className="w-5 h-5 text-blue-600" />
                   <span>Manage Employees</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('leaves')}
-                  className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50"
+                  className="flex items-center gap-3 p-4 border dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:bg-slate-900"
                 >
                   <FileText className="w-5 h-5 text-yellow-600" />
                   <span>Review Leaves</span>
                 </button>
                 <button
                   onClick={() => setShowSalaryDialog(true)}
-                  className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50"
+                  className="flex items-center gap-3 p-4 border dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:bg-slate-900"
                 >
                   <DollarSign className="w-5 h-5 text-purple-600" />
                   <span>Calculate Salaries</span>
@@ -557,77 +619,77 @@ const AdminDashboard = () => {
         {activeTab === 'employees' && (
           <div>
             {/* Employee Form */}
-            <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 mb-8">
               <h2 className="text-xl font-semibold mb-4">
                 {editingEmployee ? 'Edit Employee' : 'Add New Employee'}
               </h2>
               <form onSubmit={handleEmployeeSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Full Name</label>
                   <input
                     type="text"
                     value={employeeForm.employee_name}
                     onChange={(e) => setEmployeeForm({ ...employeeForm, employee_name: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Email</label>
                   <input
                     type="email"
                     value={employeeForm.employee_email}
                     onChange={(e) => setEmployeeForm({ ...employeeForm, employee_email: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Password</label>
                   <input
                     type="password"
                     value={employeeForm.employee_password}
                     onChange={(e) => setEmployeeForm({ ...employeeForm, employee_password: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     required={!editingEmployee}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Department</label>
                   <input
                     type="text"
                     value={employeeForm.department}
                     onChange={(e) => setEmployeeForm({ ...employeeForm, department: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Designation</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Designation</label>
                   <input
                     type="text"
                     value={employeeForm.designation}
                     onChange={(e) => setEmployeeForm({ ...employeeForm, designation: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Annual Package</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Annual Package</label>
                   <input
                     type="number"
                     value={employeeForm.annual_package}
                     onChange={(e) => setEmployeeForm({ ...employeeForm, annual_package: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Role</label>
                   <select
                     value={employeeForm.role}
                     onChange={(e) => setEmployeeForm({ ...employeeForm, role: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                   >
                     <option value="employee">Employee</option>
                     <option value="admin">Admin</option>
@@ -665,8 +727,8 @@ const AdminDashboard = () => {
             </div>
 
             {/* Employees Table */}
-            <div className="bg-white rounded-xl shadow-md overflow-visible">
-              <div className="p-6 border-b flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-visible">
+              <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4">
                 <h2 className="text-xl font-semibold text-center lg:text-left">All Employees</h2>
                 <div className="flex flex-col sm:flex-row flex-1 w-full lg:w-auto gap-3 justify-end items-stretch sm:items-center">
                   <div className="relative w-full sm:max-w-xs">
@@ -676,13 +738,13 @@ const AdminDashboard = () => {
                       placeholder="Search name or email..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                      className="w-full pl-9 pr-4 py-2 border dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:border-blue-500"
                     />
                   </div>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="border rounded-lg px-4 py-2 text-sm bg-white focus:outline-none focus:border-blue-500 w-full sm:w-auto"
+                    className="border dark:border-slate-700 rounded-lg px-4 py-2 text-sm bg-white dark:bg-slate-800 focus:outline-none focus:border-blue-500 w-full sm:w-auto"
                   >
                     <option value="all">All Status</option>
                     <option value="online">Online</option>
@@ -700,15 +762,15 @@ const AdminDashboard = () => {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-slate-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Designation</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Department</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Designation</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Role</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -720,16 +782,16 @@ const AdminDashboard = () => {
                         <td className="px-6 py-4 whitespace-nowrap">{employee.designation}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            employee.current_status === 'Online' ? 'bg-green-100 text-green-800' :
-                            employee.current_status === 'On Leave' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
+                            employee.current_status === 'Online' ? 'bg-green-100 text-green-800 dark:text-green-300' :
+                            employee.current_status === 'On Leave' ? 'bg-yellow-100 text-yellow-800 dark:text-yellow-300' :
+                            'bg-gray-100 dark:bg-slate-800/50 text-gray-800 dark:text-slate-100'
                           }`}>
                             {employee.current_status}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 rounded-full text-xs ${
-                            employee.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                            employee.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800 dark:text-blue-300'
                           }`}>
                             {employee.role}
                           </span>
@@ -737,13 +799,13 @@ const AdminDashboard = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
                             onClick={() => handleEditEmployee(employee)}
-                            className="text-blue-600 hover:text-blue-800 mr-3"
+                            className="text-blue-600 hover:text-blue-800 dark:text-blue-300 mr-3"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDeleteEmployee(employee.employee_id)}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-red-600 hover:text-red-800 dark:text-red-300"
                           >
                             Delete
                           </button>
@@ -758,8 +820,8 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === 'attendance' && (
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="p-6 border-b flex justify-between items-center">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+            <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center">
               <h2 className="text-xl font-semibold">All Attendance Records</h2>
               <button
                 onClick={() => exportToCSV(attendance, 'attendance.csv')}
@@ -771,15 +833,15 @@ const AdminDashboard = () => {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-slate-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Login</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Logout</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Working Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Employee</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Login</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Logout</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Working Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Mode</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Location</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -794,12 +856,12 @@ const AdminDashboard = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs ${
-                          record.work_mode === 'WFO' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
+                          record.work_mode === 'WFO' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800 dark:text-green-300'
                         }`}>
                           {record.work_mode}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-slate-300">
                         {record.latitude && record.longitude
                           ? `${Number(record.latitude).toFixed(4)}, ${Number(record.longitude).toFixed(4)}`
                           : 'Not captured'}
@@ -813,8 +875,8 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === 'leaves' && (
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="p-6 border-b flex justify-between items-center">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+            <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center">
               <h2 className="text-xl font-semibold">Leave Requests</h2>
               <button
                 onClick={() => exportToCSV(leaves, 'leaves.csv')}
@@ -826,16 +888,16 @@ const AdminDashboard = () => {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-50 dark:bg-slate-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Leave Days</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Employee</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Start Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">End Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Leave Days</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Reason</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -849,9 +911,9 @@ const AdminDashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap max-w-xs truncate">{leave.reason}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs ${
-                          leave.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          leave.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                          'bg-yellow-100 text-yellow-800'
+                          leave.status === 'approved' ? 'bg-green-100 text-green-800 dark:text-green-300' :
+                          leave.status === 'rejected' ? 'bg-red-100 text-red-800 dark:text-red-300' :
+                          'bg-yellow-100 text-yellow-800 dark:text-yellow-300'
                         }`}>
                           {leave.status}
                         </span>
@@ -861,13 +923,13 @@ const AdminDashboard = () => {
                           <>
                             <button
                               onClick={() => handleLeaveAction(leave.leave_id, 'approve')}
-                              className="text-green-600 hover:text-green-800 mr-3"
+                              className="text-green-600 hover:text-green-800 dark:text-green-300 mr-3"
                             >
                               <CheckCircle className="w-4 h-4 inline" />
                             </button>
                             <button
                               onClick={() => handleLeaveAction(leave.leave_id, 'reject')}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-600 hover:text-red-800 dark:text-red-300"
                             >
                               <XCircle className="w-4 h-4 inline" />
                             </button>
@@ -884,7 +946,7 @@ const AdminDashboard = () => {
 
         {activeTab === 'salary' && (
           <div>
-            <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 mb-8">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Salary Management</h2>
                 <button
@@ -896,8 +958,8 @@ const AdminDashboard = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="p-6 border-b flex justify-between items-center">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Salary Records</h2>
                 <button
                   onClick={() => exportToCSV(salaries, 'salaries.csv')}
@@ -909,13 +971,13 @@ const AdminDashboard = () => {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-slate-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Month</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Working Time</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hourly Rate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Salary Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Employee</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Month</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Working Time</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Hourly Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Salary Amount</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -937,15 +999,15 @@ const AdminDashboard = () => {
 
         {activeTab === 'tasks' && (
           <div>
-            <div className="bg-white rounded-xl shadow-md p-6 mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 mb-8">
               <h2 className="text-xl font-semibold mb-4">Assign New Task</h2>
               <form onSubmit={handleTaskSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Employee</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Employee</label>
                   <select
                     value={taskForm.employee_id}
                     onChange={(e) => setTaskForm({ ...taskForm, employee_id: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     required
                   >
                     <option value="">Select Employee</option>
@@ -955,21 +1017,21 @@ const AdminDashboard = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Task Title</label>
                   <input
                     type="text"
                     value={taskForm.title}
                     onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     required
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Description</label>
                   <textarea
                     value={taskForm.description}
                     onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
-                    className="w-full px-3 py-2 border rounded-lg"
+                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
                     rows="3"
                     required
                   />
@@ -982,8 +1044,8 @@ const AdminDashboard = () => {
               </form>
             </div>
 
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="p-6 border-b flex justify-between items-center">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Assigned Tasks</h2>
                 <button
                   onClick={() => exportToCSV(tasks, 'tasks.csv')}
@@ -995,15 +1057,15 @@ const AdminDashboard = () => {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-slate-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Task Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase w-1/4">Description</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee Reply</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned On</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Employee</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Task Title</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase w-1/4">Description</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Employee Reply</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Assigned On</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -1011,22 +1073,22 @@ const AdminDashboard = () => {
                       <tr key={task.task_id}>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{task.employee_name}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{task.title}</td>
-                        <td className="px-6 py-4"><p className="text-sm text-gray-600 line-clamp-2">{task.description}</p></td>
+                        <td className="px-6 py-4"><p className="text-sm text-gray-600 dark:text-slate-300 line-clamp-2">{task.description}</p></td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 rounded-full text-xs ${
-                            task.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            task.status === 'completed' ? 'bg-green-100 text-green-800 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:text-yellow-300'
                           }`}>
                             {task.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
+                        <td className="px-6 py-4 text-sm text-gray-600 dark:text-slate-300">
                           {task.employee_reply ? <p className="italic">"{task.employee_reply}"</p> : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">{new Date(task.created_at).toLocaleDateString()}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <button
                             onClick={() => setSelectedTaskForChat(task)}
-                            className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 px-3 py-1.5 rounded-lg font-medium transition-colors"
+                            className="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 hover:bg-blue-100 hover:text-blue-800 dark:text-blue-300 px-3 py-1.5 rounded-lg font-medium transition-colors"
                           >
                             <MessageSquare className="w-4 h-4" /> Discussion
                           </button>
@@ -1034,7 +1096,7 @@ const AdminDashboard = () => {
                       </tr>
                     ))}
                     {tasks.length === 0 && (
-                      <tr><td colSpan="7" className="px-6 py-4 text-center text-gray-500">No tasks assigned yet</td></tr>
+                      <tr><td colSpan="7" className="px-6 py-4 text-center text-gray-500 dark:text-slate-400">No tasks assigned yet</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -1044,11 +1106,11 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === 'feedback' && (
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="p-6 border-b flex justify-between items-center bg-gray-50">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+            <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-900">
               <div>
-                <h2 className="text-xl font-semibold text-gray-800">Employee Feedback & Suggestions</h2>
-                <p className="text-sm text-gray-500 mt-1">Review feedback and suggestions submitted by employees.</p>
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-slate-100">Employee Feedback & Suggestions</h2>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Review feedback and suggestions submitted by employees.</p>
               </div>
               <button
                 onClick={() => exportToCSV(feedbacks, 'feedback.csv')}
@@ -1061,7 +1123,7 @@ const AdminDashboard = () => {
             
             <div className="p-6">
               {feedbacks.length === 0 ? (
-                <div className="text-center py-12 text-gray-500 border-2 border-dashed border-gray-200 rounded-xl">
+                <div className="text-center py-12 text-gray-500 dark:text-slate-400 border dark:border-slate-700-2 border dark:border-slate-700-dashed border-gray-200 rounded-xl">
                   <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <p className="font-medium text-lg">No feedback received yet</p>
                   <p className="text-sm text-gray-400">Employee feedback submissions will show up here.</p>
@@ -1069,11 +1131,11 @@ const AdminDashboard = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {feedbacks.map((item) => (
-                    <div key={item.feedback_id} className="bg-white rounded-xl border border-gray-150 p-5 shadow-sm hover:shadow-md transition duration-200">
+                    <div key={item.feedback_id} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-150 p-5 shadow-sm hover:shadow-md transition duration-200">
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h4 className="font-bold text-gray-900">{item.employee_name}</h4>
-                          <p className="text-xs text-gray-500 mt-0.5">{item.designation} &bull; {item.department}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{item.designation} &bull; {item.department}</p>
                         </div>
                         <span className="text-xs text-gray-400 whitespace-nowrap">
                           {new Date(item.created_at).toLocaleDateString(undefined, {
@@ -1081,7 +1143,7 @@ const AdminDashboard = () => {
                           })}
                         </span>
                       </div>
-                      <div className="bg-gray-50 rounded-lg p-3 text-gray-700 text-sm whitespace-pre-wrap border border-gray-100 italic">
+                      <div className="bg-gray-50 dark:bg-slate-900 rounded-lg p-3 text-gray-700 dark:text-slate-200 text-sm whitespace-pre-wrap border border-gray-100 italic">
                         "{item.feedback_text}"
                       </div>
                     </div>
@@ -1093,92 +1155,92 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === 'profile' && (
-          <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl mx-auto border border-gray-100">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Edit Profile</h2>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 max-w-2xl mx-auto border border-gray-100">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-slate-100">Edit Profile</h2>
             <form onSubmit={handleProfileFormSubmit} className="space-y-4">
               {profileError && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-900/30 px-4 py-3 text-sm text-red-700">
                   {profileError}
                 </div>
               )}
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Full Name</label>
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Full Name</label>
                 <input
                   type="text"
                   value={profileForm.employee_name}
                   onChange={(e) => setProfileForm({ ...profileForm, employee_name: e.target.value })}
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Email</label>
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Email</label>
                 <input
                   type="email"
                   value={profileForm.employee_email}
                   onChange={(e) => setProfileForm({ ...profileForm, employee_email: e.target.value })}
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                  className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">Department</label>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Department</label>
                   <input
                     type="text"
                     value={profileForm.department}
                     onChange={(e) => setProfileForm({ ...profileForm, department: e.target.value })}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                    className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">Designation</label>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Designation</label>
                   <input
                     type="text"
                     value={profileForm.designation}
                     onChange={(e) => setProfileForm({ ...profileForm, designation: e.target.value })}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                    className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                     required
                   />
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">Change Password</p>
+              <div className="rounded-2xl border border-gray-200 bg-gray-50 dark:bg-slate-900 p-4">
+                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-slate-400">Change Password</p>
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-700">Current Password</label>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Current Password</label>
                     <input
                       type="password"
                       value={profileForm.current_password}
                       onChange={(e) => setProfileForm({ ...profileForm, current_password: e.target.value })}
-                      className="w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                      className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                       placeholder="Enter current password to change it"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">New Password</label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">New Password</label>
                       <input
                         type="password"
                         value={profileForm.new_password}
                         onChange={(e) => setProfileForm({ ...profileForm, new_password: e.target.value })}
-                        className="w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                        className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                         placeholder="Leave blank"
                       />
                     </div>
                     <div>
-                      <label className="mb-2 block text-sm font-medium text-gray-700">Confirm Password</label>
+                      <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Confirm Password</label>
                       <input
                         type="password"
                         value={profileForm.confirm_password}
                         onChange={(e) => setProfileForm({ ...profileForm, confirm_password: e.target.value })}
-                        className="w-full px-4 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                        className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                         placeholder="Repeat new password"
                       />
                     </div>
@@ -1198,27 +1260,29 @@ const AdminDashboard = () => {
           </div>
         )}
       </main>
+      </div>
+
 
       {showSalaryDialog && (
         <div 
           onClick={(e) => e.target === e.currentTarget && setShowSalaryDialog(false)}
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[100] overflow-y-auto"
         >
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-md p-6">
             <h3 className="text-xl font-semibold mb-2">Calculate all salaries</h3>
-            <p className="text-gray-600 mb-4">Choose the month to calculate salaries for.</p>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Month</label>
+            <p className="text-gray-600 dark:text-slate-300 mb-4">Choose the month to calculate salaries for.</p>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Month</label>
             <input
               type="month"
               value={salaryMonth}
               onChange={(e) => setSalaryMonth(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg mb-6"
+              className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg mb-6"
             />
             <div className="flex justify-end gap-3">
               <button
                 type="button"
                 onClick={() => setShowSalaryDialog(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 dark:bg-slate-900"
               >
                 Cancel
               </button>
@@ -1235,7 +1299,7 @@ const AdminDashboard = () => {
       )}
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 z-50 animate-bounce border text-white transition-all duration-300 ${
+        <div className={`fixed bottom-6 right-6 px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 z-50 animate-bounce border dark:border-slate-700 text-white transition-all duration-300 ${
           toast.type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-600 border-emerald-400' :
           toast.type === 'error' ? 'bg-gradient-to-r from-red-500 to-rose-600 border-red-400' :
           toast.type === 'warning' ? 'bg-gradient-to-r from-amber-500 to-orange-600 border-amber-400' :
