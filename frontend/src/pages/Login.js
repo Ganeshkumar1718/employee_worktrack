@@ -133,6 +133,17 @@ const Login = () => {
             Register
           </button>
         </p>
+
+        <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+          <p className="text-gray-600 text-sm mb-3">Want global activity tracking?</p>
+          <a
+            href="/WorkTrack-Setup.exe"
+            download
+            className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
+          >
+            Download Desktop App (Windows)
+          </a>
+        </div>
       </div>
     </div>
   );
