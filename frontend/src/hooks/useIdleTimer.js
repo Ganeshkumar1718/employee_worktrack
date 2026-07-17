@@ -107,6 +107,13 @@ const useIdleTimer = (timeout = 10 * 60 * 1000, onIdle) => {
     const checkInterval = setInterval(() => {
       if (idleTriggeredRef.current) return; // Already triggered idle
 
+      // If the browser tab is hidden/minimized, assume the employee is working in another app or tab
+      // We reset the timer so they do not get incorrectly clocked out.
+      if (document.visibilityState === 'hidden') {
+        lastActivityRef.current = Date.now();
+        return;
+      }
+
       const elapsed = Date.now() - lastActivityRef.current;
 
       // 1. Send warning at 9 minutes (if timeout is 10 mins)

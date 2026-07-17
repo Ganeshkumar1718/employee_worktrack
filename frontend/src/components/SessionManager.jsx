@@ -44,50 +44,7 @@ const SessionManager = ({ children }) => {
     }
   }, [user, fetchTodayAttendance]);
 
-  // Activity Inactivity Tracking Logic (Only after clock in)
-  useEffect(() => {
-    if (!user) return;
-
-    // Only start tracking inactivity if the user is clocked in
-    const isClockedIn = todayAttendance && todayAttendance.login_time && !todayAttendance.logout_time;
-    if (!isClockedIn) return;
-
-    const threshold = 30 * 1000; // 30 seconds threshold
-    const lastActivityRef = { current: Date.now() };
-    let warningSent = false;
-
-    const handleActivity = () => {
-      lastActivityRef.current = Date.now();
-      warningSent = false;
-    };
-
-    // Register local listeners for when the window is focused
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('keydown', handleActivity);
-    window.addEventListener('mousedown', handleActivity);
-    window.addEventListener('click', handleActivity);
-    window.addEventListener('scroll', handleActivity);
-
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - lastActivityRef.current;
-      if (elapsed >= threshold && !warningSent) {
-        warningSent = true;
-        notifyWarning(
-          'System Inactivity Warning',
-          'No activity detected on your system for 30 seconds.'
-        );
-      }
-    }, 1000);
-
-    return () => {
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('keydown', handleActivity);
-      window.removeEventListener('mousedown', handleActivity);
-      window.removeEventListener('click', handleActivity);
-      window.removeEventListener('scroll', handleActivity);
-      clearInterval(interval);
-    };
-  }, [user, todayAttendance, authConfig]);
+  // Activity tracking is handled entirely by useIdleTimer now
 
   // Check for day change every minute
   useEffect(() => {
