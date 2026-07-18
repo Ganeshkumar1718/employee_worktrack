@@ -58,7 +58,14 @@ export const AuthProvider = ({ children }) => {
     const handleBeforeUnload = () => {
       const token = localStorage.getItem('token');
       if (token) {
-        const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5003';
+        const getBaseURL = () => {
+          if (process.env.REACT_APP_API_URL) {
+            return process.env.REACT_APP_API_URL;
+          }
+          const hostname = window.location.hostname;
+          return `http://${hostname}:5003`;
+        };
+        const baseURL = getBaseURL();
         fetch(`${baseURL}/api/attendance/logout`, {
           method: 'POST',
           headers: {
