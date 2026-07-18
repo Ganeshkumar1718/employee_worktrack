@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: worktrack-pro-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    disk:
+      name: sqlite-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: 5003
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
