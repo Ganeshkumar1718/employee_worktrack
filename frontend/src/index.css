@@ -248,3 +248,9 @@ tbody tr:hover {
     padding-right: 1rem;
   }
 }
+
+/* Hide default browser password reveal icon (Edge) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
