@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
 const ProfileModal = ({ open, onClose, user, onSave, title = 'Profile', submitLabel = 'Save Changes' }) => {
   const modalRef = useRef(null);
@@ -12,6 +13,9 @@ const ProfileModal = ({ open, onClose, user, onSave, title = 'Profile', submitLa
     new_password: '',
     confirm_password: ''
   });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -157,41 +161,71 @@ const ProfileModal = ({ open, onClose, user, onSave, title = 'Profile', submitLa
             <div className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">Current Password</label>
-                <input
-                  type="password"
-                  name="current_password"
-                  autoComplete="current-password"
-                  value={formData.current_password}
-                  onChange={(e) => setFormData({ ...formData, current_password: e.target.value })}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900"
-                  placeholder="Enter current password to change it"
-                />
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    name="current_password"
+                    autoComplete="current-password"
+                    value={formData.current_password}
+                    onChange={(e) => setFormData({ ...formData, current_password: e.target.value })}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 pr-10"
+                    placeholder="Enter current password to change it"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-700"
+                    title={showCurrentPassword ? "Hide password" : "Show password"}
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">New Password</label>
-                  <input
-                    type="password"
-                    name="new_password"
-                    autoComplete="new-password"
-                    value={formData.new_password}
-                    onChange={(e) => setFormData({ ...formData, new_password: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900"
-                    placeholder="Leave blank to keep current password"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      name="new_password"
+                      autoComplete="new-password"
+                      value={formData.new_password}
+                      onChange={(e) => setFormData({ ...formData, new_password: e.target.value })}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 pr-10"
+                      placeholder="Leave blank to keep current password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-700"
+                      title={showNewPassword ? "Hide password" : "Show password"}
+                    >
+                      {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">Confirm Password</label>
-                  <input
-                    type="password"
-                    name="confirm_password"
-                    autoComplete="new-password"
-                    value={formData.confirm_password}
-                    onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900"
-                    placeholder="Repeat new password"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirm_password"
+                      autoComplete="new-password"
+                      value={formData.confirm_password}
+                      onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 pr-10"
+                      placeholder="Repeat new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-700"
+                      title={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
               </div>
               <p className="text-xs text-slate-500">If you do not want to change your password, leave these fields empty.</p>

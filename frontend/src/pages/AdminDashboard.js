@@ -15,9 +15,10 @@ import {
   CheckSquare,
   MessageSquare,
   AlertTriangle,
-  Moon,
   Sun,
-  Menu
+  Menu,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import TaskChatModal from '../components/TaskChatModal';
 import { notifySuccess, notifyError, notifyWarning, notifyInfo, requestNotificationPermission } from '../utils/notifications';
@@ -57,6 +58,10 @@ const AdminDashboard = () => {
     new_password: '',
     confirm_password: ''
   });
+  const [showEmployeePassword, setShowEmployeePassword] = useState(false);
+  const [showProfileCurrentPassword, setShowProfileCurrentPassword] = useState(false);
+  const [showProfileNewPassword, setShowProfileNewPassword] = useState(false);
+  const [showProfileConfirmPassword, setShowProfileConfirmPassword] = useState(false);
   const [profileError, setProfileError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [summaryMonth, setSummaryMonth] = useState(() => new Date().toISOString().slice(0, 7));
@@ -805,13 +810,22 @@ const AdminDashboard = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Password</label>
-                  <input
-                    type="password"
-                    value={employeeForm.employee_password}
-                    onChange={(e) => setEmployeeForm({ ...employeeForm, employee_password: e.target.value })}
-                    className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg"
-                    required={!editingEmployee}
-                  />
+                  <div className="relative">
+                    <input
+                      type={showEmployeePassword ? "text" : "password"}
+                      value={employeeForm.employee_password}
+                      onChange={(e) => setEmployeeForm({ ...employeeForm, employee_password: e.target.value })}
+                      className="w-full px-3 py-2 border dark:border-slate-700 rounded-lg pr-10"
+                      required={!editingEmployee}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowEmployeePassword(!showEmployeePassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                    >
+                      {showEmployeePassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">Department</label>
@@ -1527,35 +1541,62 @@ const AdminDashboard = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Current Password</label>
-                    <input
-                      type="password"
-                      value={profileForm.current_password}
-                      onChange={(e) => setProfileForm({ ...profileForm, current_password: e.target.value })}
-                      className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                      placeholder="Enter current password to change it"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showProfileCurrentPassword ? "text" : "password"}
+                        value={profileForm.current_password}
+                        onChange={(e) => setProfileForm({ ...profileForm, current_password: e.target.value })}
+                        className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none pr-10"
+                        placeholder="Enter current password to change it"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowProfileCurrentPassword(!showProfileCurrentPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                      >
+                        {showProfileCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                       <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">New Password</label>
-                      <input
-                        type="password"
-                        value={profileForm.new_password}
-                        onChange={(e) => setProfileForm({ ...profileForm, new_password: e.target.value })}
-                        className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                        placeholder="Leave blank"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showProfileNewPassword ? "text" : "password"}
+                          value={profileForm.new_password}
+                          onChange={(e) => setProfileForm({ ...profileForm, new_password: e.target.value })}
+                          className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none pr-10"
+                          placeholder="Leave blank to keep current password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowProfileNewPassword(!showProfileNewPassword)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                        >
+                          {showProfileNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Confirm Password</label>
-                      <input
-                        type="password"
-                        value={profileForm.confirm_password}
-                        onChange={(e) => setProfileForm({ ...profileForm, confirm_password: e.target.value })}
-                        className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                        placeholder="Repeat new password"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showProfileConfirmPassword ? "text" : "password"}
+                          value={profileForm.confirm_password}
+                          onChange={(e) => setProfileForm({ ...profileForm, confirm_password: e.target.value })}
+                          className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none pr-10"
+                          placeholder="Repeat new password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowProfileConfirmPassword(!showProfileConfirmPassword)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                        >
+                          {showProfileConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
