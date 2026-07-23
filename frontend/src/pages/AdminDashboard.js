@@ -15,6 +15,7 @@ import {
   CheckSquare,
   MessageSquare,
   AlertTriangle,
+  Moon,
   Sun,
   Menu,
   Eye,
