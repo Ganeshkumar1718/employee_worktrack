@@ -562,7 +562,7 @@ const EmployeeDashboard = () => {
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-200"
               >
-                {isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-slate-600" />}
+                {isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-slate-600 dark:text-slate-300" />}
               </button>
 
               <div className="relative" ref={notificationsRef}>
@@ -589,7 +589,7 @@ const EmployeeDashboard = () => {
                           <div key={task.task_id} className="p-4 border-b dark:border-slate-700 dark:border-slate-700 hover:bg-slate-50 transition-colors">
                             <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">New Task Assigned</p>
                             <p className="text-sm font-bold text-slate-800">{task.title}</p>
-                            <p className="text-xs text-slate-600 mt-1">Assigned by: {task.admin_name}</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">Assigned by: {task.admin_name}</p>
                             <div className="mt-3 flex gap-2">
                               <button 
                                 onClick={() => { 
@@ -603,7 +603,7 @@ const EmployeeDashboard = () => {
                               </button>
                               <button 
                                 onClick={() => markAsRead(`task-${task.task_id}`)} 
-                                className="px-3 py-1.5 bg-slate-50 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
+                                className="px-3 py-1.5 bg-slate-50 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 rounded-lg font-medium transition-colors"
                               >
                                 Mark as Read
                               </button>
@@ -644,10 +644,10 @@ const EmployeeDashboard = () => {
                     <button
                       type="button"
                       onClick={() => setWorkMode('WFO')}
-                      className={`p-4 rounded-xl border dark:border-slate-700 text-left ${workMode === 'WFO' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 bg-gray-50 dark:bg-slate-900'}`}
+                      className={`p-4 rounded-xl border dark:border-slate-700 text-left ${workMode === 'WFO' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <Building className={`w-5 h-5 ${workMode === 'WFO' ? 'text-blue-600' : 'text-gray-500 dark:text-slate-400'}`} />
+                        <Building className={`w-5 h-5 ${workMode === 'WFO' ? 'text-blue-600' : 'text-gray-500 dark:text-slate-300'}`} />
                         <div>
                           <p className="font-semibold">Work From Office</p>
                           <p className="text-sm text-gray-600 dark:text-slate-300">Office attendance with location capture.</p>
@@ -658,10 +658,10 @@ const EmployeeDashboard = () => {
                     <button
                       type="button"
                       onClick={() => setWorkMode('WFH')}
-                      className={`p-4 rounded-xl border dark:border-slate-700 text-left ${workMode === 'WFH' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 bg-gray-50 dark:bg-slate-900'}`}
+                      className={`p-4 rounded-xl border dark:border-slate-700 text-left ${workMode === 'WFH' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900'}`}
                     >
                       <div className="flex items-center gap-3">
-                        <Home className={`w-5 h-5 ${workMode === 'WFH' ? 'text-blue-600' : 'text-gray-500 dark:text-slate-400'}`} />
+                        <Home className={`w-5 h-5 ${workMode === 'WFH' ? 'text-blue-600' : 'text-gray-500 dark:text-slate-300'}`} />
                         <div>
                           <p className="font-semibold">Work From Home</p>
                           <p className="text-sm text-gray-600 dark:text-slate-300">Remote work without office check-in.</p>
@@ -670,7 +670,7 @@ const EmployeeDashboard = () => {
                     </button>
                   </div>
 
-                  <label className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 dark:bg-slate-900 p-4 cursor-pointer">
+                  <label className="flex items-start gap-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 p-4 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={captureLocation}
@@ -683,7 +683,7 @@ const EmployeeDashboard = () => {
                     <div>
                       <p className="font-semibold">Enable location</p>
                       <p className="text-sm text-gray-600 dark:text-slate-300">Capture your current coordinates when you clock in.</p>
-                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">{locationStatus}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-300 mt-1">{locationStatus}</p>
                     </div>
                   </label>
 
@@ -874,7 +874,7 @@ const EmployeeDashboard = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Hours</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                     {monthlySummary.map((record, i) => (
                       <tr key={i}>
                         <td className="px-6 py-4 whitespace-nowrap">{record.attendance_date}</td>
@@ -896,15 +896,15 @@ const EmployeeDashboard = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-slate-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Login</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Logout</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Hours</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Mode</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Location</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Login</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Logout</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Hours</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Mode</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Location</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {attendance.map((record) => (
                     <tr key={record.attendance_id}>
                       <td className="px-6 py-4 whitespace-nowrap">{record.attendance_date}</td>
@@ -913,7 +913,7 @@ const EmployeeDashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap">{record.total_working_time || '0 Hours 0 Minutes 0 Seconds'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs ${
-                          record.work_mode === 'WFO' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800 dark:text-green-300'
+                          record.work_mode === 'WFO' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300' : 'bg-green-100 text-green-800 dark:text-green-300'
                         }`}>
                           {record.work_mode}
                         </span>
@@ -1000,16 +1000,16 @@ const EmployeeDashboard = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-slate-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Start Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">End Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Number of Days</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Reason</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Applied Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Start Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">End Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Number of Days</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Reason</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Applied Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                     {leaves.map((leave) => (
                       <tr key={leave.leave_id}>
                         <td className="px-6 py-4 whitespace-nowrap capitalize">{leave.leave_type}</td>
@@ -1046,13 +1046,13 @@ const EmployeeDashboard = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-slate-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Month</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Working Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Hourly Rate</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Salary Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Month</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Working Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Hourly Rate</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Salary Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {salaries.map((salary) => (
                     <tr key={salary.salary_id}>
                       <td className="px-6 py-4 whitespace-nowrap">{salary.month}</td>
@@ -1071,7 +1071,7 @@ const EmployeeDashboard = () => {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100 mb-6">My Assigned Tasks</h2>
             {tasks.length === 0 && (
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md text-center text-gray-500 dark:text-slate-400">
+              <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md text-center text-gray-500 dark:text-slate-300">
                 You have no assigned tasks at the moment.
               </div>
             )}
@@ -1080,7 +1080,7 @@ const EmployeeDashboard = () => {
                 <div className="flex flex-col sm:flex-row justify-between items-start mb-4 gap-4">
                   <div>
                     <h3 className="text-xl font-semibold">{task.title}</h3>
-                    <p className="text-sm text-gray-500 dark:text-slate-400">Assigned by {task.admin_name} on {new Date(task.created_at).toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-500 dark:text-slate-300">Assigned by {task.admin_name} on {new Date(task.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -1118,8 +1118,8 @@ const EmployeeDashboard = () => {
                 ) : (
                   <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 p-4 rounded-lg mt-4">
                     <p className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">Your Reply:</p>
-                    <p className="text-green-700 italic">"{task.employee_reply}"</p>
-                    <p className="text-xs text-green-600 mt-2">Completed on {new Date(task.completed_at).toLocaleString()}</p>
+                    <p className="text-green-700 dark:text-green-300 italic">"{task.employee_reply}"</p>
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-2">Completed on {new Date(task.completed_at).toLocaleString()}</p>
                   </div>
                 )}
               </div>
@@ -1229,7 +1229,7 @@ const EmployeeDashboard = () => {
                     type="text"
                     value={profileForm.department}
                     disabled
-                    className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-gray-100 dark:bg-slate-800/50 cursor-not-allowed text-gray-500 dark:text-slate-400"
+                    className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-gray-100 dark:bg-slate-800/50 cursor-not-allowed text-gray-500 dark:text-slate-300"
                   />
                 </div>
                 <div>
@@ -1238,14 +1238,14 @@ const EmployeeDashboard = () => {
                     type="text"
                     value={profileForm.designation}
                     disabled
-                    className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-gray-100 dark:bg-slate-800/50 cursor-not-allowed text-gray-500 dark:text-slate-400"
+                    className="w-full px-4 py-3 border dark:border-slate-700 rounded-lg bg-gray-100 dark:bg-slate-800/50 cursor-not-allowed text-gray-500 dark:text-slate-300"
                   />
                 </div>
               </div>
-              <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">Note: Department and Designation can only be changed by an administrator.</p>
+              <p className="text-xs text-gray-500 dark:text-slate-300 mt-1">Note: Department and Designation can only be changed by an administrator.</p>
 
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 dark:bg-slate-900 p-4">
-                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-slate-400">Change Password</p>
+              <div className="rounded-2xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 p-4">
+                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-slate-300">Change Password</p>
                 <div className="space-y-4">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Current Password</label>
@@ -1260,7 +1260,7 @@ const EmployeeDashboard = () => {
                       <button
                         type="button"
                         onClick={() => setShowProfileCurrentPassword(!showProfileCurrentPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-slate-300"
                       >
                         {showProfileCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -1281,7 +1281,7 @@ const EmployeeDashboard = () => {
                         <button
                           type="button"
                           onClick={() => setShowProfileNewPassword(!showProfileNewPassword)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-slate-300"
                         >
                           {showProfileNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
@@ -1300,7 +1300,7 @@ const EmployeeDashboard = () => {
                         <button
                           type="button"
                           onClick={() => setShowProfileConfirmPassword(!showProfileConfirmPassword)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-slate-300"
                         >
                           {showProfileConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>

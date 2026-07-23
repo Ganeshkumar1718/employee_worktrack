@@ -23,7 +23,7 @@ const IdleWarningModal = ({ isOpen, countdown, onContinue, onLogout }) => {
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-8">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Inactive Session</h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 dark:text-slate-300 mb-6">
             You have been inactive for 10 minutes.
             <br />
             You will be automatically clocked out in

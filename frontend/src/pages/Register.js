@@ -56,7 +56,7 @@ const Register = () => {
           <h1 className="text-3xl font-bold text-gray-800">WorkTrack Pro</h1>
         </div>
         
-        <h2 className="text-2xl font-semibold text-gray-700 mb-6 text-center">Register</h2>
+        <h2 className="text-2xl font-semibold text-gray-700 dark:text-slate-300 mb-6 text-center">Register</h2>
         
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -66,7 +66,7 @@ const Register = () => {
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-slate-300 text-sm font-bold mb-2">
               Full Name
             </label>
             <input
@@ -80,7 +80,7 @@ const Register = () => {
           </div>
           
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-slate-300 text-sm font-bold mb-2">
               Email
             </label>
             <input
@@ -95,7 +95,7 @@ const Register = () => {
           </div>
           
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-slate-300 text-sm font-bold mb-2">
               Password
             </label>
             <div className="relative">
@@ -111,7 +111,7 @@ const Register = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-slate-300 focus:outline-none"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -119,7 +119,7 @@ const Register = () => {
           </div>
           
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-slate-300 text-sm font-bold mb-2">
               Department
             </label>
             <input
@@ -133,7 +133,7 @@ const Register = () => {
           </div>
           
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-slate-300 text-sm font-bold mb-2">
               Designation
             </label>
             <input
@@ -147,7 +147,7 @@ const Register = () => {
           </div>
           
           <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-slate-300 text-sm font-bold mb-2">
               Annual Package (₹)
             </label>
             <input
@@ -168,7 +168,7 @@ const Register = () => {
           </button>
         </form>
         
-        <p className="text-center text-gray-600 mt-6">
+        <p className="text-center text-gray-600 dark:text-slate-300 mt-6">
           Already have an account?{' '}
           <button
             onClick={() => navigate('/login')}

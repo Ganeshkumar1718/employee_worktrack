@@ -92,7 +92,7 @@ const ProfileModal = ({ open, onClose, user, onSave, title = 'Profile', submitLa
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-600 hover:bg-slate-100"
+            className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100"
           >
             Close
           </button>

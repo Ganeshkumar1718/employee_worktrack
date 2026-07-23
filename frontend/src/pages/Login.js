@@ -51,7 +51,7 @@ const Login = () => {
           <h1 className="text-3xl font-bold text-gray-800">WorkTrack Pro</h1>
         </div>
 
-        <h2 className="text-2xl font-semibold text-gray-700 mb-6 text-center">Login</h2>
+        <h2 className="text-2xl font-semibold text-gray-700 dark:text-slate-300 mb-6 text-center">Login</h2>
 
         {/* Session expired banner — shown when user was kicked out by a new login elsewhere */}
         {sessionExpired && (
@@ -78,7 +78,7 @@ const Login = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-slate-300 text-sm font-bold mb-2">
               Email
             </label>
             <input
@@ -94,7 +94,7 @@ const Login = () => {
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 dark:text-slate-300 text-sm font-bold mb-2">
               Password
             </label>
             <div className="relative">
@@ -111,7 +111,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-slate-300 focus:outline-none"
                 title={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -135,7 +135,7 @@ const Login = () => {
           </button>
         </form>
 
-        <p className="text-center text-gray-600 mt-6 text-sm">
+        <p className="text-center text-gray-600 dark:text-slate-300 mt-6 text-sm">
           Don't have an account?{' '}
           <button
             onClick={() => navigate('/register')}

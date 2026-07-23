@@ -610,7 +610,7 @@ const AdminDashboard = () => {
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-700 transition-all duration-200"
               >
-                {isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-slate-600" />}
+                {isDarkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-slate-600 dark:text-slate-300" />}
               </button>
 
               <div className="relative" ref={notificationsRef}>
@@ -648,7 +648,7 @@ const AdminDashboard = () => {
                         <div key={`leave-${leave.leave_id}`} className="p-4 border-b dark:border-slate-700 dark:border-slate-700 hover:bg-slate-50 transition-colors">
                           <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Leave Request Pending</p>
                           <p className="text-sm font-bold text-slate-800">{leave.employee_name}</p>
-                          <p className="text-xs text-slate-600 mt-1">Requested {leave.leave_type} leave from {leave.start_date} to {leave.end_date}</p>
+                          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">Requested {leave.leave_type} leave from {leave.start_date} to {leave.end_date}</p>
                           <div className="mt-3 flex gap-2">
                             <button 
                               onClick={() => { 
@@ -662,7 +662,7 @@ const AdminDashboard = () => {
                             </button>
                             <button 
                               onClick={() => markAsRead(`leave-${leave.leave_id}`)} 
-                              className="px-3 py-1.5 bg-slate-50 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
+                              className="px-3 py-1.5 bg-slate-50 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 rounded-lg font-medium transition-colors"
                             >
                               Mark as Read
                             </button>
@@ -677,7 +677,7 @@ const AdminDashboard = () => {
                         <div key={`task-${task.task_id}`} className="p-4 border-b dark:border-slate-700 dark:border-slate-700 hover:bg-slate-50 transition-colors">
                           <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Task Completed</p>
                           <p className="text-sm font-bold text-slate-800">{task.employee_name}</p>
-                          <p className="text-xs text-slate-600 mt-1">Completed task: "{task.title}"</p>
+                          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">Completed task: "{task.title}"</p>
                           <div className="mt-3 flex gap-2">
                             <button 
                               onClick={() => { 
@@ -691,7 +691,7 @@ const AdminDashboard = () => {
                             </button>
                             <button 
                               onClick={() => markAsRead(`task-${task.task_id}`)} 
-                              className="px-3 py-1.5 bg-slate-50 text-xs text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors"
+                              className="px-3 py-1.5 bg-slate-50 text-xs text-slate-600 dark:text-slate-300 hover:bg-slate-100 rounded-lg font-medium transition-colors"
                             >
                               Mark as Read
                             </button>
@@ -822,7 +822,7 @@ const AdminDashboard = () => {
                     <button
                       type="button"
                       onClick={() => setShowEmployeePassword(!showEmployeePassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-slate-300"
                     >
                       {showEmployeePassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -938,16 +938,16 @@ const AdminDashboard = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-slate-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Department</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Designation</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Role</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Department</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Designation</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Role</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                     {filteredEmployees.map((employee) => (
                       <tr key={employee.employee_id}>
                         <td className="px-6 py-4 whitespace-nowrap font-medium flex items-center gap-3">
@@ -974,7 +974,7 @@ const AdminDashboard = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 rounded-full text-xs ${
-                            employee.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800 dark:text-blue-300'
+                            employee.role === 'admin' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300' : 'bg-blue-100 text-blue-800 dark:text-blue-300'
                           }`}>
                             {employee.role}
                           </span>
@@ -1059,7 +1059,7 @@ const AdminDashboard = () => {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Hours</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                         {monthlySummary.map((record, i) => (
                           <tr key={i}>
                             {summaryEmployee === 'all' && (
@@ -1102,7 +1102,7 @@ const AdminDashboard = () => {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">This Month's Hours</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                     {workingHoursReport.map((row) => (
                       <tr key={row.employee_id}>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{row.employee_name}</td>
@@ -1131,16 +1131,16 @@ const AdminDashboard = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-slate-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Employee</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Login</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Logout</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Working Time</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Mode</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Location</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Employee</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Login</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Logout</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Working Time</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Mode</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Location</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {attendance.map((record) => (
                     <tr key={record.attendance_id}>
                       <td className="px-6 py-4 whitespace-nowrap font-medium">{record.employee_name}</td>
@@ -1152,7 +1152,7 @@ const AdminDashboard = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs ${
-                          record.work_mode === 'WFO' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800 dark:text-green-300'
+                          record.work_mode === 'WFO' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300' : 'bg-green-100 text-green-800 dark:text-green-300'
                         }`}>
                           {record.work_mode}
                         </span>
@@ -1187,17 +1187,17 @@ const AdminDashboard = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-slate-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Employee</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Start Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">End Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Leave Days</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Reason</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Employee</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Type</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Start Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">End Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Leave Days</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Reason</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                   {leaves.map((leave) => (
                     <tr key={leave.leave_id}>
                       <td className="px-6 py-4 whitespace-nowrap font-medium">{leave.employee_name}</td>
@@ -1270,14 +1270,14 @@ const AdminDashboard = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-slate-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Employee</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Month</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Working Time</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Hourly Rate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Salary Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Employee</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Month</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Working Time</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Hourly Rate</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Salary Amount</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                     {salaries.map((salary) => (
                       <tr key={salary.salary_id}>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{salary.employee_name}</td>
@@ -1356,16 +1356,16 @@ const AdminDashboard = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-slate-900">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Employee</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Task Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase w-1/4">Description</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Employee Reply</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Assigned On</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Actions</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Employee</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Task Title</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase w-1/4">Description</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Employee Reply</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Assigned On</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
                     {tasks.map((task) => (
                       <tr key={task.task_id}>
                         <td className="px-6 py-4 whitespace-nowrap font-medium">{task.employee_name}</td>
@@ -1393,7 +1393,7 @@ const AdminDashboard = () => {
                       </tr>
                     ))}
                     {tasks.length === 0 && (
-                      <tr><td colSpan="7" className="px-6 py-4 text-center text-gray-500 dark:text-slate-400">No tasks assigned yet</td></tr>
+                      <tr><td colSpan="7" className="px-6 py-4 text-center text-gray-500 dark:text-slate-300">No tasks assigned yet</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -1407,7 +1407,7 @@ const AdminDashboard = () => {
             <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-900">
               <div>
                 <h2 className="text-xl font-semibold text-gray-800 dark:text-slate-100">Employee Feedback & Suggestions</h2>
-                <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Review feedback and suggestions submitted by employees.</p>
+                <p className="text-sm text-gray-500 dark:text-slate-300 mt-1">Review feedback and suggestions submitted by employees.</p>
               </div>
               <button
                 onClick={() => exportToCSV(feedbacks, 'feedback.csv')}
@@ -1420,7 +1420,7 @@ const AdminDashboard = () => {
             
             <div className="p-6">
               {feedbacks.length === 0 ? (
-                <div className="text-center py-12 text-gray-500 dark:text-slate-400 border dark:border-slate-700-2 border dark:border-slate-700-dashed border-gray-200 rounded-xl">
+                <div className="text-center py-12 text-gray-500 dark:text-slate-300 border dark:border-slate-700-2 border dark:border-slate-700-dashed border-gray-200 dark:border-slate-700 rounded-xl">
                   <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <p className="font-medium text-lg">No feedback received yet</p>
                   <p className="text-sm text-gray-400">Employee feedback submissions will show up here.</p>
@@ -1432,7 +1432,7 @@ const AdminDashboard = () => {
                       <div className="flex justify-between items-start mb-3">
                         <div>
                           <h4 className="font-bold text-gray-900">{item.employee_name}</h4>
-                          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{item.designation} &bull; {item.department}</p>
+                          <p className="text-xs text-gray-500 dark:text-slate-300 mt-0.5">{item.designation} &bull; {item.department}</p>
                         </div>
                         <span className="text-xs text-gray-400 whitespace-nowrap">
                           {new Date(item.created_at).toLocaleDateString(undefined, {
@@ -1537,8 +1537,8 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-gray-200 bg-gray-50 dark:bg-slate-900 p-4">
-                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-slate-400">Change Password</p>
+              <div className="rounded-2xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900 p-4">
+                <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-slate-300">Change Password</p>
                 <div className="space-y-4">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-slate-200">Current Password</label>
@@ -1553,7 +1553,7 @@ const AdminDashboard = () => {
                       <button
                         type="button"
                         onClick={() => setShowProfileCurrentPassword(!showProfileCurrentPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-slate-300"
                       >
                         {showProfileCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -1574,7 +1574,7 @@ const AdminDashboard = () => {
                         <button
                           type="button"
                           onClick={() => setShowProfileNewPassword(!showProfileNewPassword)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-slate-300"
                         >
                           {showProfileNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
@@ -1593,7 +1593,7 @@ const AdminDashboard = () => {
                         <button
                           type="button"
                           onClick={() => setShowProfileConfirmPassword(!showProfileConfirmPassword)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-slate-300"
                         >
                           {showProfileConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
