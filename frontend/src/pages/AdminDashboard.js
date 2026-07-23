@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import TaskChatModal from '../components/TaskChatModal';
 import { notifySuccess, notifyError, notifyWarning, notifyInfo, requestNotificationPermission } from '../utils/notifications';
+import * as XLSX from 'xlsx';
 
 const AdminDashboard = () => {
   const { user, logout, updateUser } = useAuth();
@@ -58,6 +59,10 @@ const AdminDashboard = () => {
   });
   const [profileError, setProfileError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [summaryMonth, setSummaryMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [summaryEmployee, setSummaryEmployee] = useState('');
+  const [monthlySummary, setMonthlySummary] = useState([]);
+  const [summaryStats, setSummaryStats] = useState({});
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedTaskForChat, setSelectedTaskForChat] = useState(null);
@@ -165,6 +170,72 @@ const AdminDashboard = () => {
       console.error('Error fetching data:', error);
     }
   }, [authConfig]);
+
+  const fetchEmployeeMonthlySummary = useCallback(async () => {
+    if (!summaryEmployee) {
+      setMonthlySummary([]);
+      setSummaryStats({});
+      return;
+    }
+    try {
+      const res = await api.get(`/api/attendance/summary/${summaryEmployee}?month=${summaryMonth}`, authConfig());
+      setMonthlySummary(res.data.summary || []);
+      setSummaryStats(res.data.stats || {});
+    } catch (err) {
+      console.error('Error fetching monthly summary:', err);
+    }
+  }, [summaryEmployee, summaryMonth, authConfig]);
+
+  useEffect(() => {
+    fetchEmployeeMonthlySummary();
+  }, [fetchEmployeeMonthlySummary]);
+
+  const downloadSummaryExcel = () => {
+    if (monthlySummary.length === 0) return;
+    
+    let data;
+    if (summaryEmployee === 'all') {
+      data = monthlySummary.map(row => ({
+        Employee: row.employee_name,
+        Date: row.attendance_date,
+        'First Login': row.first_login,
+        'Last Logout': row.last_logout || 'Not yet',
+        'Total Hours': Number(row.daily_total_hours || 0).toFixed(2)
+      }));
+      data.push({});
+      data.push({ Employee: '--- Monthly Totals ---' });
+      if (Array.isArray(summaryStats)) {
+        summaryStats.forEach(stat => {
+           data.push({
+             Employee: stat.employee_name,
+             'Total Hours': Number(stat.total_hours || 0).toFixed(2),
+             'Total Working Days': stat.total_days || 0
+           });
+        });
+      }
+    } else {
+      data = monthlySummary.map(row => ({
+        Date: row.attendance_date,
+        'First Login': row.first_login,
+        'Last Logout': row.last_logout || 'Not yet',
+        'Total Hours': Number(row.daily_total_hours || 0).toFixed(2)
+      }));
+      data.push({});
+      data.push({
+        Date: 'Monthly Total Hours',
+        'First Login': Number(summaryStats.total_hours || 0).toFixed(2),
+      });
+      data.push({
+        Date: 'Total Working Days',
+        'First Login': summaryStats.total_days || 0,
+      });
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Summary');
+    XLSX.writeFile(workbook, `Employee_Summary_${summaryEmployee}_${summaryMonth}.xlsx`);
+  };
 
   useEffect(() => {
     requestNotificationPermission();
@@ -365,6 +436,70 @@ const AdminDashboard = () => {
       showNotification(msg, 'error');
     }
   };
+
+  const exportWorkingHoursToExcel = () => {
+    if (!workingHoursReport || workingHoursReport.length === 0) return;
+    const data = workingHoursReport.map(row => ({
+      Employee: row.employee_name,
+      "Today's Hours": row.today_hours,
+      "This Week's Hours": row.week_hours,
+      "This Month's Hours": row.month_hours
+    }));
+    
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Working Hours');
+    XLSX.writeFile(workbook, `Working_Hours_Overview.xlsx`);
+  };
+
+  const workingHoursReport = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const currentMonthStr = todayStr.slice(0, 7);
+    
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const startOfWeek = new Date(d.setDate(diff));
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    return employees.map(emp => {
+      const empRecords = attendance.filter(a => a.employee_id === emp.employee_id);
+      let todaySecs = 0;
+      let weekSecs = 0;
+      let monthSecs = 0;
+
+      empRecords.forEach(r => {
+        const rDate = new Date(r.attendance_date);
+        let secs = 0;
+        if (r.working_hours !== undefined) {
+           secs = (r.working_hours * 3600) + (r.working_minutes * 60) + (r.working_seconds || 0);
+        } else if (r.total_working_time) {
+           const match = r.total_working_time.match(/(\d+)\s*Hours\s*(\d+)\s*Minutes\s*(\d+)\s*Seconds/i);
+           if (match) {
+             secs = (parseInt(match[1]) * 3600) + (parseInt(match[2]) * 60) + parseInt(match[3]);
+           }
+        }
+        
+        if (r.attendance_date === todayStr) {
+          todaySecs += secs;
+        }
+        if (r.attendance_date.startsWith(currentMonthStr)) {
+          monthSecs += secs;
+        }
+        if (rDate >= startOfWeek) {
+          weekSecs += secs;
+        }
+      });
+
+      return {
+        employee_id: emp.employee_id,
+        employee_name: emp.employee_name,
+        today_hours: (todaySecs / 3600).toFixed(2),
+        week_hours: (weekSecs / 3600).toFixed(2),
+        month_hours: (monthSecs / 3600).toFixed(2)
+      };
+    });
+  }, [attendance, employees]);
 
   const exportToCSV = (data, filename) => {
     if (!data.length) {
@@ -853,7 +988,120 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === 'attendance' && (
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center flex-wrap gap-4">
+                <h2 className="text-xl font-semibold">Employee Monthly Summary</h2>
+                <div className="flex items-center gap-4 flex-wrap">
+                  <select
+                    value={summaryEmployee}
+                    onChange={(e) => setSummaryEmployee(e.target.value)}
+                    className="border rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600"
+                  >
+                    <option value="">Select Employee</option>
+                    <option value="all">All Employees</option>
+                    {employees.map(emp => (
+                      <option key={emp.employee_id} value={emp.employee_id}>
+                        {emp.employee_name}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="month"
+                    value={summaryMonth}
+                    onChange={(e) => setSummaryMonth(e.target.value)}
+                    className="border rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600"
+                  />
+                  <button onClick={downloadSummaryExcel} disabled={!summaryEmployee || monthlySummary.length === 0} className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50">
+                    Download Excel
+                  </button>
+                </div>
+              </div>
+              {summaryEmployee ? (
+                <div className="p-6">
+                  {summaryEmployee !== 'all' && (
+                    <div className="flex gap-6 border-b dark:border-slate-700 pb-4 mb-4">
+                      <div>
+                        <p className="text-sm text-gray-500">Total Hours</p>
+                        <p className="text-lg font-bold">{Number(summaryStats.total_hours || 0).toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Working Days</p>
+                        <p className="text-lg font-bold">{summaryStats.total_days || 0}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="overflow-x-auto max-h-80">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-slate-900 sticky top-0">
+                        <tr>
+                          {summaryEmployee === 'all' && (
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
+                          )}
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">First Login</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Logout</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Hours</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {monthlySummary.map((record, i) => (
+                          <tr key={i}>
+                            {summaryEmployee === 'all' && (
+                              <td className="px-6 py-4 whitespace-nowrap">{record.employee_name}</td>
+                            )}
+                            <td className="px-6 py-4 whitespace-nowrap">{record.attendance_date}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{record.first_login}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{record.last_logout || 'Not yet'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{Number(record.daily_total_hours || 0).toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-6 text-center text-gray-500">
+                  Please select an employee to view their summary.
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Working Hours Overview</h2>
+                <button
+                  onClick={exportWorkingHoursToExcel}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700"
+                >
+                  Download Excel
+                </button>
+              </div>
+              <div className="overflow-x-auto max-h-80">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-slate-900 sticky top-0">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Today's Hours</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">This Week's Hours</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">This Month's Hours</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {workingHoursReport.map((row) => (
+                      <tr key={row.employee_id}>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium">{row.employee_name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{row.today_hours}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{row.week_hours}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{row.month_hours}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
             <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center">
               <h2 className="text-xl font-semibold">All Attendance Records</h2>
               <button
@@ -904,6 +1152,7 @@ const AdminDashboard = () => {
                 </tbody>
               </table>
             </div>
+          </div>
           </div>
         )}
 

@@ -50,6 +50,59 @@ class Attendance {
     );
     return rows[0];
   }
+
+  static async getMonthlySummary(employee_id, month) {
+    const rows = await db.query(
+      `SELECT 
+        attendance_date, 
+        MIN(login_time) as first_login, 
+        MAX(logout_time) as last_logout, 
+        SUM(total_hours) as daily_total_hours 
+       FROM attendance 
+       WHERE employee_id = ? AND strftime("%Y-%m", attendance_date) = ? 
+       GROUP BY attendance_date 
+       ORDER BY attendance_date ASC`,
+      [employee_id, month]
+    );
+    return rows;
+  }
+
+  static async getAllEmployeeStats(month) {
+    const rows = await db.query(
+      `SELECT 
+         a.employee_id,
+         e.employee_name,
+         COUNT(DISTINCT a.attendance_date) as total_days, 
+         SUM(a.total_hours) as total_hours, 
+         COUNT(DISTINCT CASE WHEN a.work_mode = "WFO" THEN a.attendance_date END) as wfo_days, 
+         COUNT(DISTINCT CASE WHEN a.work_mode = "WFH" THEN a.attendance_date END) as wfh_days 
+       FROM attendance a
+       JOIN employees e ON a.employee_id = e.employee_id
+       WHERE strftime("%Y-%m", a.attendance_date) = ?
+       GROUP BY a.employee_id`,
+      [month]
+    );
+    return rows;
+  }
+
+  static async getAllMonthlySummary(month) {
+    const rows = await db.query(
+      `SELECT 
+        a.employee_id,
+        e.employee_name,
+        a.attendance_date, 
+        MIN(a.login_time) as first_login, 
+        MAX(a.logout_time) as last_logout, 
+        SUM(a.total_hours) as daily_total_hours 
+       FROM attendance a
+       JOIN employees e ON a.employee_id = e.employee_id
+       WHERE strftime("%Y-%m", a.attendance_date) = ? 
+       GROUP BY a.employee_id, a.attendance_date 
+       ORDER BY a.attendance_date ASC, e.employee_name ASC`,
+      [month]
+    );
+    return rows;
+  }
 }
 
 module.exports = Attendance;

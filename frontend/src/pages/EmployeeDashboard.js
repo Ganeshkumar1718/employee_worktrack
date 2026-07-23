@@ -22,6 +22,7 @@ import TaskChatModal from '../components/TaskChatModal';
 import { calculateLiveWorkingTime } from '../utils/timeFormatter';
 import useActivityTracker from '../hooks/useActivityTracker';
 import { notifySuccess, notifyError, notifyWarning, notifyInfo, requestNotificationPermission } from '../utils/notifications';
+import * as XLSX from 'xlsx';
 
 const getCurrentLocation = () => new Promise((resolve, reject) => {
   if (!navigator.geolocation) {
@@ -62,6 +63,9 @@ const EmployeeDashboard = () => {
   const [toast, setToast] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [summaryMonth, setSummaryMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [monthlySummary, setMonthlySummary] = useState([]);
+  const [todayBaseSeconds, setTodayBaseSeconds] = useState(0);
   const [workMode, setWorkMode] = useState('WFO');
   const [captureLocation, setCaptureLocation] = useState(true);
   const [locationStatus, setLocationStatus] = useState('Location enabled');
@@ -173,10 +177,60 @@ const EmployeeDashboard = () => {
       const activeSession = todayRecords.find(a => !a.logout_time);
       const latestSession = todayRecords.length > 0 ? todayRecords[0] : null;
       setTodayAttendance(activeSession || latestSession);
+
+      let todaySecs = 0;
+      todayRecords.forEach(r => {
+         if (r.working_hours !== undefined) {
+             todaySecs += (r.working_hours * 3600) + (r.working_minutes * 60) + r.working_seconds;
+         }
+      });
+      setTodayBaseSeconds(todaySecs);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   }, [authConfig]);
+
+  const fetchMonthlySummary = useCallback(async () => {
+    try {
+      const res = await api.get(`/api/attendance/summary/my?month=${summaryMonth}`, authConfig());
+      setMonthlySummary(res.data.summary || []);
+      setStats(res.data.stats || {});
+    } catch (err) {
+      console.error('Error fetching monthly summary:', err);
+    }
+  }, [summaryMonth, authConfig]);
+
+  useEffect(() => {
+    fetchMonthlySummary();
+  }, [fetchMonthlySummary]);
+
+  const downloadExcel = () => {
+    const data = monthlySummary.map(row => ({
+      Date: row.attendance_date,
+      'First Login': row.first_login,
+      'Last Logout': row.last_logout || 'Not yet',
+      'Total Hours': Number(row.daily_total_hours || 0).toFixed(2)
+    }));
+    
+    data.push({});
+    data.push({
+      Date: 'Monthly Total Hours',
+      'First Login': Number(stats.total_hours || 0).toFixed(2),
+    });
+    data.push({
+      Date: 'Total Working Days',
+      'First Login': stats.total_days || 0,
+    });
+    data.push({
+      Date: 'Total Leave Days',
+      'First Login': leaveStats.total_leaves || 0,
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Summary');
+    XLSX.writeFile(workbook, `Monthly_Summary_${summaryMonth}.xlsx`);
+  };
 
   useEffect(() => {
     requestNotificationPermission();
@@ -664,9 +718,18 @@ const EmployeeDashboard = () => {
               <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
                   <Clock className="w-5 h-5 text-blue-600" />
-                  <span className="text-gray-600 dark:text-slate-300">Total Working Time</span>
+                  <span className="text-gray-600 dark:text-slate-300">Today's Total Time</span>
                 </div>
-                <p className="text-2xl font-bold">{stats.total_working_time || '0 Hours 0 Minutes 0 Seconds'}</p>
+                <p className="text-2xl font-bold">
+                  {(() => {
+                    const liveSecs = (liveWorkingTime.workingHours * 3600) + (liveWorkingTime.workingMinutes * 60) + liveWorkingTime.workingSeconds;
+                    const totalSecs = todayBaseSeconds + liveSecs;
+                    const th = Math.floor(totalSecs / 3600);
+                    const tm = Math.floor((totalSecs % 3600) / 60);
+                    const ts = totalSecs % 60;
+                    return `${th} Hours ${tm} Minutes ${ts} Seconds`;
+                  })()}
+                </p>
               </div>
               <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md">
                 <div className="flex items-center gap-3 mb-2">
@@ -734,7 +797,14 @@ const EmployeeDashboard = () => {
                   </div>
                   <div>
                     <p className="text-gray-600 dark:text-slate-300">Latest Logout Time</p>
-                    <p className="font-semibold">{todayAttendance.logout_time || 'Not yet'}</p>
+                    <p className="font-semibold">
+                      {(() => {
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const todayRecs = attendance.filter(a => a.attendance_date === todayStr);
+                        const latestWithLogout = todayRecs.find(a => a.logout_time);
+                        return latestWithLogout ? latestWithLogout.logout_time : 'Not yet';
+                      })()}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-600 dark:text-slate-300">Current Session Working Time</p>
@@ -759,10 +829,64 @@ const EmployeeDashboard = () => {
         )}
 
         {activeTab === 'attendance' && (
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
-            <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700">
-              <h2 className="text-xl font-semibold">Attendance History</h2>
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Monthly Summary</h2>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="month"
+                    value={summaryMonth}
+                    onChange={(e) => setSummaryMonth(e.target.value)}
+                    className="border rounded-lg px-3 py-2 text-sm dark:bg-slate-700 dark:border-slate-600"
+                  />
+                  <button onClick={downloadExcel} className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700">
+                    Download Excel
+                  </button>
+                </div>
+              </div>
+              <div className="p-6 bg-slate-50 dark:bg-slate-900 flex gap-6 border-b dark:border-slate-700">
+                <div>
+                  <p className="text-sm text-gray-500">Total Hours</p>
+                  <p className="text-lg font-bold">{Number(stats.total_hours || 0).toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Working Days</p>
+                  <p className="text-lg font-bold">{stats.total_days || 0}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Leave Days</p>
+                  <p className="text-lg font-bold">{leaveStats.total_leaves || 0}</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto max-h-80">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-slate-900 sticky top-0">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">First Login</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Logout</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Hours</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {monthlySummary.map((record, i) => (
+                      <tr key={i}>
+                        <td className="px-6 py-4 whitespace-nowrap">{record.attendance_date}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{record.first_login}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{record.last_logout || 'Not yet'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{Number(record.daily_total_hours || 0).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
+              <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700">
+                <h2 className="text-xl font-semibold">Attendance History (All)</h2>
+              </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-slate-900">
@@ -799,6 +923,7 @@ const EmployeeDashboard = () => {
                 </tbody>
               </table>
             </div>
+          </div>
           </div>
         )}
 

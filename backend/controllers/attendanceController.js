@@ -119,6 +119,40 @@ const attendanceController = {
     }
   },
 
+  getMySummary: async (req, res) => {
+    try {
+      const employee_id = req.user.employee_id;
+      const month = req.query.month || moment().format('YYYY-MM');
+      const summary = await Attendance.getMonthlySummary(employee_id, month);
+      const stats = await Attendance.getEmployeeStats(employee_id, month);
+      res.json({ summary, stats });
+    } catch (error) {
+      console.error('Get my summary error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  },
+
+  getEmployeeSummary: async (req, res) => {
+    try {
+      const employee_id = req.params.employee_id;
+      const month = req.query.month || moment().format('YYYY-MM');
+      
+      if (employee_id === 'all') {
+        const summary = await Attendance.getAllMonthlySummary(month);
+        const stats = await Attendance.getAllEmployeeStats(month);
+        res.json({ summary, stats });
+        return;
+      }
+
+      const summary = await Attendance.getMonthlySummary(employee_id, month);
+      const stats = await Attendance.getEmployeeStats(employee_id, month);
+      res.json({ summary, stats });
+    } catch (error) {
+      console.error('Get employee summary error:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  },
+
   autoClockout: async (req, res) => {
     try {
       const employee_id = req.user.employee_id;
