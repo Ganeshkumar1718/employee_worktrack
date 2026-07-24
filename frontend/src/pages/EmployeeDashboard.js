@@ -171,9 +171,16 @@ const EmployeeDashboard = () => {
       setSalaries(salariesRes.data);
       setStats(statsRes.data);
       setLeaveStats(leaveStatsRes.data);
-      setTasks(tasksRes.data);
-      isInitialTasksLoaded.current = true;
       
+      if (!isInitialTasksLoaded.current) {
+        const initialRead = [];
+        tasksRes.data.filter(t => t.status === 'pending').forEach(t => initialRead.push(`task-${t.task_id}`));
+        setReadNotifications(initialRead);
+        localStorage.setItem('read_notifications', JSON.stringify(initialRead));
+        isInitialTasksLoaded.current = true;
+      }
+
+      setTasks(tasksRes.data);
       // Check today's attendance - find active session first, then latest session
       const today = new Date().toISOString().split('T')[0];
       const todayRecords = attendanceRes.data.filter(a => a.attendance_date === today);

@@ -171,13 +171,22 @@ const AdminDashboard = () => {
         api.get('/api/tasks/all', authConfig()),
         api.get('/api/feedback', authConfig())
       ]);
+      
+      if (!isInitialTasksLoaded.current) {
+        const initialRead = [];
+        leavesRes.data.filter(l => l.status === 'pending').forEach(l => initialRead.push(`leave-${l.leave_id}`));
+        tasksRes.data.filter(t => t.status === 'completed').forEach(t => initialRead.push(`task-${t.task_id}`));
+        setReadNotifications(initialRead);
+        localStorage.setItem('read_notifications', JSON.stringify(initialRead));
+        isInitialTasksLoaded.current = true;
+      }
+
       setEmployees(employeesRes.data);
       setAttendance(attendanceRes.data);
       setLeaves(leavesRes.data);
       setSalaries(salariesRes.data);
       setTasks(tasksRes.data);
       setFeedbacks(feedbackRes.data);
-      isInitialTasksLoaded.current = true;
     } catch (error) {
       console.error('Error fetching data:', error);
     }
