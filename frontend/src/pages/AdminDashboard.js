@@ -19,7 +19,8 @@ import {
   Sun,
   Menu,
   Eye,
-  EyeOff
+  EyeOff,
+  X
 } from 'lucide-react';
 import TaskChatModal from '../components/TaskChatModal';
 import { notifySuccess, notifyError, notifyWarning, notifyInfo, requestNotificationPermission } from '../utils/notifications';
@@ -72,6 +73,11 @@ const AdminDashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedTaskForChat, setSelectedTaskForChat] = useState(null);
+  const [showDetailedLogs, setShowDetailedLogs] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportFilterEmployee, setExportFilterEmployee] = useState('all');
+  const [exportFilterMonth, setExportFilterMonth] = useState('');
+  const [exportFilterDate, setExportFilterDate] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return localStorage.getItem('darkMode') === 'true';
   });
@@ -1119,13 +1125,21 @@ const AdminDashboard = () => {
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden">
             <div className="p-6 border-b dark:border-slate-700 dark:border-slate-700 flex justify-between items-center">
               <h2 className="text-xl font-semibold">All Attendance Records</h2>
-              <button
-                onClick={() => exportToCSV(attendance, 'attendance.csv')}
-                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-              >
-                <Download className="w-4 h-4" />
-                Export
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowDetailedLogs(!showDetailedLogs)}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  {showDetailedLogs ? "Hide Detailed Logs" : "See Full Details"}
+                </button>
+                <button
+                  onClick={() => setIsExportModalOpen(true)}
+                  className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                >
+                  <Download className="w-4 h-4" />
+                  Export
+                </button>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -1133,8 +1147,8 @@ const AdminDashboard = () => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Employee</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Login</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Logout</th>
+                    {showDetailedLogs && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Login</th>}
+                    {showDetailedLogs && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Logout</th>}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Working Time</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Mode</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-300 uppercase">Location</th>
@@ -1145,8 +1159,8 @@ const AdminDashboard = () => {
                     <tr key={record.attendance_id}>
                       <td className="px-6 py-4 whitespace-nowrap font-medium">{record.employee_name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{record.attendance_date}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{record.login_time}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{record.logout_time || '-'}</td>
+                      {showDetailedLogs && <td className="px-6 py-4 whitespace-nowrap">{record.login_time}</td>}
+                      {showDetailedLogs && <td className="px-6 py-4 whitespace-nowrap">{record.logout_time || '-'}</td>}
                       <td className="px-6 py-4 whitespace-nowrap">
                         {record.total_working_time || '0 Hours 0 Minutes 0 Seconds'}
                       </td>
@@ -1168,6 +1182,100 @@ const AdminDashboard = () => {
               </table>
             </div>
           </div>
+          
+          {/* Export Modal */}
+          {isExportModalOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold">Export Attendance</h3>
+                  <button onClick={() => setIsExportModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Employee</label>
+                    <select
+                      value={exportFilterEmployee}
+                      onChange={(e) => setExportFilterEmployee(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600"
+                    >
+                      <option value="all">All Employees</option>
+                      {employees.map(emp => (
+                        <option key={emp.employee_id} value={emp.employee_id}>{emp.employee_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Month</label>
+                    <input
+                      type="month"
+                      value={exportFilterMonth}
+                      onChange={(e) => {
+                        setExportFilterMonth(e.target.value);
+                        setExportFilterDate(''); // clear specific date if month is selected
+                      }}
+                      className="w-full px-3 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Specific Day (Optional)</label>
+                    <input
+                      type="date"
+                      value={exportFilterDate}
+                      onChange={(e) => {
+                        setExportFilterDate(e.target.value);
+                        setExportFilterMonth(''); // clear month if date is selected
+                      }}
+                      className="w-full px-3 py-2 border rounded-lg dark:bg-slate-700 dark:border-slate-600"
+                    />
+                  </div>
+                  
+                  {(() => {
+                    // Compute filtered total hours dynamically
+                    const filteredRecords = attendance.filter(r => {
+                      if (exportFilterEmployee !== 'all' && r.employee_id.toString() !== exportFilterEmployee.toString()) return false;
+                      if (exportFilterDate && r.attendance_date !== exportFilterDate) return false;
+                      if (exportFilterMonth && !r.attendance_date.startsWith(exportFilterMonth)) return false;
+                      return true;
+                    });
+                    
+                    let totalHours = 0;
+                    filteredRecords.forEach(r => {
+                      const h = r.working_hours || 0;
+                      const m = r.working_minutes || 0;
+                      const s = r.working_seconds || 0;
+                      totalHours += h + (m / 60) + (s / 3600);
+                    });
+                    
+                    return (
+                      <div className="bg-blue-50 dark:bg-slate-700/50 p-4 rounded-lg mt-4">
+                        <p className="text-sm text-blue-800 dark:text-blue-200">Total Records: {filteredRecords.length}</p>
+                        <p className="text-lg font-bold text-blue-900 dark:text-blue-100">Total Hours: {totalHours.toFixed(2)}</p>
+                      </div>
+                    );
+                  })()}
+
+                  <button
+                    onClick={() => {
+                      const filteredRecords = attendance.filter(r => {
+                        if (exportFilterEmployee !== 'all' && r.employee_id.toString() !== exportFilterEmployee.toString()) return false;
+                        if (exportFilterDate && r.attendance_date !== exportFilterDate) return false;
+                        if (exportFilterMonth && !r.attendance_date.startsWith(exportFilterMonth)) return false;
+                        return true;
+                      });
+                      exportToCSV(filteredRecords, `attendance_export_${new Date().toISOString().split('T')[0]}.csv`);
+                      setIsExportModalOpen(false);
+                    }}
+                    className="w-full bg-green-600 text-white py-2 rounded-lg font-medium hover:bg-green-700 mt-4"
+                  >
+                    Download CSV
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           </div>
         )}
 
