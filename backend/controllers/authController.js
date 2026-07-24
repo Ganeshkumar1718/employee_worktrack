@@ -95,7 +95,8 @@ const authController = {
           designation: employee.designation,
           role: employee.role,
           annual_package: employee.annual_package,
-          hourly_rate: employee.hourly_rate
+          hourly_rate: employee.hourly_rate,
+          profile_photo: employee.profile_photo
         }
       });
     } catch (error) {
