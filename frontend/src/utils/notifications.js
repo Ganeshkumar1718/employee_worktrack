@@ -19,8 +19,19 @@ export const requestNotificationPermission = async () => {
     return true;
   }
   if (Notification.permission === 'denied') return false;
-  const result = await Notification.requestPermission();
-  permissionGranted = result === 'granted';
+  
+  try {
+    permissionGranted = await new Promise((resolve) => {
+      const promise = Notification.requestPermission((result) => {
+        resolve(result === 'granted');
+      });
+      if (promise) {
+        promise.then((result) => resolve(result === 'granted')).catch(() => resolve(false));
+      }
+    });
+  } catch (e) {
+    permissionGranted = false;
+  }
   return permissionGranted;
 };
 

@@ -5,7 +5,16 @@ class Attendance {
     const { employee_id, login_time, attendance_date, work_mode, device_info, ip_address, latitude, longitude } = attendanceData;
     const result = await db.run(
       'INSERT INTO attendance (employee_id, login_time, attendance_date, work_mode, device_info, ip_address, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [employee_id, login_time, attendance_date, work_mode, device_info, ip_address, latitude, longitude]
+      [
+        employee_id, 
+        login_time, 
+        attendance_date, 
+        work_mode || 'WFO', 
+        device_info || null, 
+        ip_address || null, 
+        latitude ?? null, 
+        longitude ?? null
+      ]
     );
     return result.id;
   }
