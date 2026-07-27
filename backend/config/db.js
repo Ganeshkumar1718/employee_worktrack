@@ -3,7 +3,7 @@ const path = require('path');
 
 // Connect to SQLite database
 const dbPath = process.env.NODE_ENV === 'production'
-  ? '/data/worktrack_pro.db'
+  ? path.join(process.cwd(), 'worktrack_pro.db')
   : path.join(__dirname, '../worktrack_pro.db');
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
