@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
                           hostname.startsWith('172.') ||
                           hostname.endsWith('.local');
           
-          return isLocal ? `http://${hostname}:5003` : 'https://worktrack-pro-backend.onrender.com';
+          return isLocal ? `http://${hostname}:5003` : 'https://employee-worktrack-1.onrender.com';
         };
         const baseURL = getBaseURL();
         fetch(`${baseURL}/api/attendance/logout`, {
