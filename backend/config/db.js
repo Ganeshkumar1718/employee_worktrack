@@ -2,9 +2,23 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
 // Connect to SQLite database
-const dbPath = process.env.NODE_ENV === 'production'
-  ? path.join(process.cwd(), 'worktrack_pro.db')
-  : path.join(__dirname, '../worktrack_pro.db');
+const fs = require('fs');
+const isProd = process.env.NODE_ENV === 'production';
+const prodDbPath = '/data/worktrack_pro.db';
+const localDbPath = path.join(__dirname, '../worktrack_pro.db');
+
+if (isProd) {
+  const seedDbPath = path.join(process.cwd(), 'worktrack_pro.db');
+  if (!fs.existsSync('/data')) {
+    try { fs.mkdirSync('/data', { recursive: true }); } catch (e) {}
+  }
+  if (!fs.existsSync(prodDbPath) && fs.existsSync(seedDbPath)) {
+    fs.copyFileSync(seedDbPath, prodDbPath);
+    console.log('Seeded persistent database from repository');
+  }
+}
+
+const dbPath = isProd ? prodDbPath : localDbPath;
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Database connection failed:', err);
