@@ -10,7 +10,12 @@
  */
 export const calculateLiveWorkingTime = (loginTime) => {
   try {
-    const login = new Date(loginTime);
+    // If the string doesn't contain timezone info ('Z' or 'T'), assume it's UTC from the old backend format
+    let parsedTimeStr = loginTime;
+    if (loginTime && !loginTime.includes('T') && !loginTime.includes('Z')) {
+      parsedTimeStr = loginTime.replace(' ', 'T') + 'Z';
+    }
+    const login = new Date(parsedTimeStr);
     const now = new Date();
     
     if (isNaN(login.getTime())) {
@@ -65,9 +70,12 @@ export const calculateLiveWorkingTime = (loginTime) => {
  */
 export const formatDisplayTime = (timeString) => {
   if (!timeString) return '';
-  // If it's old format (YYYY-MM-DD HH:mm:ss) without timezone, and server was in UTC, we can try appending 'Z'
-  // But safest is just to parse it. If we migrate to ISO strings, this handles it well.
-  const date = new Date(timeString);
+  // If it's old format (YYYY-MM-DD HH:mm:ss) without timezone, assume UTC
+  let parsedTimeStr = timeString;
+  if (timeString && !timeString.includes('T') && !timeString.includes('Z')) {
+    parsedTimeStr = timeString.replace(' ', 'T') + 'Z';
+  }
+  const date = new Date(parsedTimeStr);
   if (isNaN(date.getTime())) return timeString;
   
   // Return nicely formatted time, e.g., "7/28/2026, 6:40:08 PM" or similar local format
