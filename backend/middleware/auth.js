@@ -12,12 +12,7 @@ const authMiddleware = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'worktrack_pro_secret_key_2024');
     req.user = decoded;
 
-    // Single-device enforcement: check if this token is still the active one
-    const activeToken = await Employee.getActiveToken(decoded.employee_id);
-    if (activeToken !== token) {
-      return res.status(401).json({ message: 'Session expired. You have been logged in from another device.' });
-    }
-
+    // Allow multiple simultaneous logins for the same account
     next();
   } catch (error) {
     res.status(401).json({ message: 'Token is not valid' });
