@@ -59,9 +59,6 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         const getBaseURL = () => {
-          if (process.env.REACT_APP_API_URL) {
-            return process.env.REACT_APP_API_URL;
-          }
           const hostname = window.location.hostname;
           const isLocal = hostname === 'localhost' || 
                           hostname === '127.0.0.1' || 
