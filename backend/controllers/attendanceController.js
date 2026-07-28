@@ -9,7 +9,7 @@ const attendanceController = {
       const employee_id = req.user.employee_id;
       
       const today = moment().format('YYYY-MM-DD');
-      const login_time = moment().format('YYYY-MM-DD HH:mm:ss');
+      const login_time = new Date().toISOString();
 
       // Check if there's an active session (clocked in but not clocked out)
       const activeSession = await Attendance.findActiveSession(employee_id, today);
@@ -39,7 +39,7 @@ const attendanceController = {
     try {
       const employee_id = req.user.employee_id;
       const today = moment().format('YYYY-MM-DD');
-      const logout_time = moment().format('YYYY-MM-DD HH:mm:ss');
+      const logout_time = new Date().toISOString();
 
       // Find the most recent active session
       const attendance = await Attendance.findActiveSession(employee_id, today);
@@ -157,7 +157,7 @@ const attendanceController = {
     try {
       const employee_id = req.user.employee_id;
       const today = moment().format('YYYY-MM-DD');
-      const logout_time = moment().format('YYYY-MM-DD HH:mm:ss');
+      const logout_time = new Date().toISOString();
 
       // Find the most recent active session
       const attendance = await Attendance.findActiveSession(employee_id, today);

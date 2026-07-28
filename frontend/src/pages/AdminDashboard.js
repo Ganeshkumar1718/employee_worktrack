@@ -23,6 +23,7 @@ import {
   X
 } from 'lucide-react';
 import TaskChatModal from '../components/TaskChatModal';
+import { formatDisplayTime } from '../utils/timeFormatter';
 import { notifySuccess, notifyError, notifyWarning, notifyInfo, requestNotificationPermission } from '../utils/notifications';
 import * as XLSX from 'xlsx';
 
@@ -219,8 +220,8 @@ const AdminDashboard = () => {
       data = monthlySummary.map(row => ({
         Employee: row.employee_name,
         Date: row.attendance_date,
-        'First Login': row.first_login,
-        'Last Logout': row.last_logout || 'Not yet',
+        'First Login': formatDisplayTime(row.first_login),
+        'Last Logout': row.last_logout ? formatDisplayTime(row.last_logout) : 'Not yet',
         'Total Hours': Number(row.daily_total_hours || 0).toFixed(2)
       }));
       data.push({});
@@ -237,8 +238,8 @@ const AdminDashboard = () => {
     } else {
       data = monthlySummary.map(row => ({
         Date: row.attendance_date,
-        'First Login': row.first_login,
-        'Last Logout': row.last_logout || 'Not yet',
+        'First Login': formatDisplayTime(row.first_login),
+        'Last Logout': row.last_logout ? formatDisplayTime(row.last_logout) : 'Not yet',
         'Total Hours': Number(row.daily_total_hours || 0).toFixed(2)
       }));
       data.push({});
@@ -1081,8 +1082,8 @@ const AdminDashboard = () => {
                               <td className="px-6 py-4 whitespace-nowrap">{record.employee_name}</td>
                             )}
                             <td className="px-6 py-4 whitespace-nowrap">{record.attendance_date}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">{record.first_login}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">{record.last_logout || 'Not yet'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{formatDisplayTime(record.first_login)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">{record.last_logout ? formatDisplayTime(record.last_logout) : 'Not yet'}</td>
                             <td className="px-6 py-4 whitespace-nowrap">{Number(record.daily_total_hours || 0).toFixed(2)}</td>
                           </tr>
                         ))}
@@ -1168,8 +1169,8 @@ const AdminDashboard = () => {
                     <tr key={record.attendance_id}>
                       <td className="px-6 py-4 whitespace-nowrap font-medium">{record.employee_name}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{record.attendance_date}</td>
-                      {showDetailedLogs && <td className="px-6 py-4 whitespace-nowrap">{record.login_time}</td>}
-                      {showDetailedLogs && <td className="px-6 py-4 whitespace-nowrap">{record.logout_time || '-'}</td>}
+                      {showDetailedLogs && <td className="px-6 py-4 whitespace-nowrap">{formatDisplayTime(record.login_time)}</td>}
+                      {showDetailedLogs && <td className="px-6 py-4 whitespace-nowrap">{record.logout_time ? formatDisplayTime(record.logout_time) : '-'}</td>}
                       <td className="px-6 py-4 whitespace-nowrap">
                         {record.total_working_time || '0 Hours 0 Minutes 0 Seconds'}
                       </td>

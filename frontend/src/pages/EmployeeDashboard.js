@@ -21,7 +21,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import TaskChatModal from '../components/TaskChatModal';
-import { calculateLiveWorkingTime } from '../utils/timeFormatter';
+import { calculateLiveWorkingTime, formatDisplayTime } from '../utils/timeFormatter';
 import useActivityTracker from '../hooks/useActivityTracker';
 import { notifySuccess, notifyError, notifyWarning, notifyInfo, requestNotificationPermission } from '../utils/notifications';
 import * as XLSX from 'xlsx';
@@ -706,7 +706,7 @@ const EmployeeDashboard = () => {
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-md space-y-5">
                   <div>
                     <h3 className="text-lg font-semibold mb-1">Currently Working</h3>
-                    <p className="text-sm text-gray-600 dark:text-slate-300">You clocked in at {todayAttendance.login_time}</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-300">You clocked in at {formatDisplayTime(todayAttendance.login_time)}</p>
                   </div>
 
                   <div className="bg-blue-50 dark:bg-blue-900/30 p-6 rounded-xl text-center">
@@ -805,7 +805,7 @@ const EmployeeDashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <p className="text-gray-600 dark:text-slate-300">Latest Login Time</p>
-                    <p className="font-semibold">{todayAttendance.login_time}</p>
+                    <p className="font-semibold">{formatDisplayTime(todayAttendance.login_time)}</p>
                   </div>
                   <div>
                     <p className="text-gray-600 dark:text-slate-300">Latest Logout Time</p>
@@ -814,7 +814,7 @@ const EmployeeDashboard = () => {
                         const todayStr = new Date().toISOString().split('T')[0];
                         const todayRecs = attendance.filter(a => a.attendance_date === todayStr);
                         const latestWithLogout = todayRecs.find(a => a.logout_time);
-                        return latestWithLogout ? latestWithLogout.logout_time : 'Not yet';
+                        return latestWithLogout ? formatDisplayTime(latestWithLogout.logout_time) : 'Not yet';
                       })()}
                     </p>
                   </div>
@@ -885,8 +885,8 @@ const EmployeeDashboard = () => {
                     {monthlySummary.map((record, i) => (
                       <tr key={i}>
                         <td className="px-6 py-4 whitespace-nowrap">{record.attendance_date}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{record.first_login}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{record.last_logout || 'Not yet'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{formatDisplayTime(record.first_login)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{record.last_logout ? formatDisplayTime(record.last_logout) : 'Not yet'}</td>
                         <td className="px-6 py-4 whitespace-nowrap">{Number(record.daily_total_hours || 0).toFixed(2)}</td>
                       </tr>
                     ))}
@@ -915,8 +915,8 @@ const EmployeeDashboard = () => {
                   {attendance.map((record) => (
                     <tr key={record.attendance_id}>
                       <td className="px-6 py-4 whitespace-nowrap">{record.attendance_date}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{record.login_time}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{record.logout_time || '-'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{formatDisplayTime(record.login_time)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{record.logout_time ? formatDisplayTime(record.logout_time) : '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{record.total_working_time || '0 Hours 0 Minutes 0 Seconds'}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 py-1 rounded-full text-xs ${

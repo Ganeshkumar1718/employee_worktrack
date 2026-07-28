@@ -59,6 +59,25 @@ export const calculateLiveWorkingTime = (loginTime) => {
 };
 
 /**
+ * Format timestamp string to readable local time string
+ * @param {string} timeString - The timestamp string (e.g. from database)
+ * @returns {string} Formatted string
+ */
+export const formatDisplayTime = (timeString) => {
+  if (!timeString) return '';
+  // If it's old format (YYYY-MM-DD HH:mm:ss) without timezone, and server was in UTC, we can try appending 'Z'
+  // But safest is just to parse it. If we migrate to ISO strings, this handles it well.
+  const date = new Date(timeString);
+  if (isNaN(date.getTime())) return timeString;
+  
+  // Return nicely formatted time, e.g., "7/28/2026, 6:40:08 PM" or similar local format
+  return date.toLocaleString(undefined, {
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+};
+
+/**
  * Format total working time string from hours, minutes, seconds
  * @param {number} hours - Hours
  * @param {number} minutes - Minutes
