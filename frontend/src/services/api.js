@@ -12,7 +12,7 @@ const getBaseURL = () => {
                   hostname.startsWith('172.') ||
                   hostname.endsWith('.local');
   
-  return isLocal ? `http://${hostname}:5003` : 'https://employee-worktrack-2.onrender.com';
+  return isLocal ? `http://${hostname}:5003` : 'https://employee-worktrack-1.onrender.com';
 };
 
 const api = axios.create({

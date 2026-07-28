@@ -4,17 +4,27 @@ const path = require('path');
 // Connect to SQLite database
 const fs = require('fs');
 const isProd = process.env.NODE_ENV === 'production';
-const prodDbPath = '/data/worktrack_pro.db';
+let prodDbPath = '/data/worktrack_pro.db';
 const localDbPath = path.join(__dirname, '../worktrack_pro.db');
 
 if (isProd) {
   const seedDbPath = path.join(process.cwd(), 'worktrack_pro.db');
   if (!fs.existsSync('/data')) {
-    try { fs.mkdirSync('/data', { recursive: true }); } catch (e) {}
+    try { 
+      fs.mkdirSync('/data', { recursive: true }); 
+    } catch (e) {
+      console.warn('Could not create /data directory (likely on free tier). Falling back to local database.');
+      prodDbPath = localDbPath;
+    }
   }
-  if (!fs.existsSync(prodDbPath) && fs.existsSync(seedDbPath)) {
-    fs.copyFileSync(seedDbPath, prodDbPath);
-    console.log('Seeded persistent database from repository');
+  
+  if (prodDbPath === '/data/worktrack_pro.db' && !fs.existsSync(prodDbPath) && fs.existsSync(seedDbPath)) {
+    try {
+      fs.copyFileSync(seedDbPath, prodDbPath);
+      console.log('Seeded persistent database from repository');
+    } catch (err) {
+      console.error('Failed to seed database:', err);
+    }
   }
 }
 
