@@ -21,7 +21,7 @@ class Employee {
   }
 
   static async getAll() {
-    const rows = await db.query('SELECT employee_id, employee_name, employee_email, department, designation, annual_package, hourly_rate, role, profile_photo, created_at FROM employees');
+    const rows = await db.query('SELECT employee_id, employee_name, employee_email, department, designation, annual_package, hourly_rate, role, profile_photo, status, last_activity, created_at FROM employees');
     return rows;
   }
 

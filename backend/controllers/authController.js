@@ -7,31 +7,39 @@ const authController = {
     try {
       const { employee_name, employee_email, employee_password, department, designation, annual_package, role } = req.body;
 
-      // Check if employee already exists
-      const existingEmployee = await Employee.findByEmail(employee_email);
-      if (existingEmployee) {
-        return res.status(400).json({ message: 'Employee already exists' });
+      if (!employee_name || !employee_email || !employee_password) {
+        return res.status(400).json({ message: 'Name, email, and password are required' });
       }
 
-      // Calculate hourly rate
-      const monthly_salary = annual_package / 12;
+      // Check if employee/employer already exists
+      const existingEmployee = await Employee.findByEmail(employee_email);
+      if (existingEmployee) {
+        return res.status(400).json({ message: 'An account with this email already exists' });
+      }
+
+      // Normalize role: employer / admin -> admin, otherwise employee
+      const normalizedRole = (role === 'employer' || role === 'admin') ? 'admin' : 'employee';
+
+      // Calculate hourly rate safely (prevent NaN)
+      const packageValue = (annual_package !== undefined && annual_package !== null && annual_package !== '') ? Number(annual_package) : 0;
+      const monthly_salary = packageValue / 12;
       const working_days = 22;
       const daily_hours = 8;
-      const hourly_rate = monthly_salary / (working_days * daily_hours);
+      const hourly_rate = packageValue > 0 ? (monthly_salary / (working_days * daily_hours)) : 0;
 
       // Hash password
       const hashedPassword = await bcrypt.hash(employee_password, 10);
 
-      // Create employee
+      // Create employee or employer record in database
       const employee_id = await Employee.create({
         employee_name,
         employee_email,
         employee_password: hashedPassword,
-        department,
-        designation,
-        annual_package,
-        hourly_rate,
-        role: role || 'employee'
+        department: department || (normalizedRole === 'admin' ? 'Management' : 'General'),
+        designation: designation || (normalizedRole === 'admin' ? 'Employer / Administrator' : 'Staff Member'),
+        annual_package: packageValue,
+        hourly_rate: Number(hourly_rate.toFixed(2)),
+        role: normalizedRole
       });
 
       const employee = await Employee.findById(employee_id);
@@ -43,19 +51,19 @@ const authController = {
         { expiresIn: '24h' }
       );
 
-      // Single-device enforcement: save as the active token, overwriting any previous session
+      // Single-device enforcement: save as the active token
       await Employee.saveActiveToken(employee.employee_id, token);
 
       const { employee_password: _, ...employeeData } = employee;
 
       res.status(201).json({
-        message: 'Employee registered successfully',
+        message: normalizedRole === 'admin' ? 'Employer registered successfully' : 'Employee registered successfully',
         token,
         employee: employeeData
       });
     } catch (error) {
       console.error('Registration error:', error);
-      res.status(500).json({ message: 'Server error' });
+      res.status(500).json({ message: 'Server error during registration' });
     }
   },
 
