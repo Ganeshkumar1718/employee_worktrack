@@ -181,6 +181,21 @@ async function initializeDatabase() {
       FOREIGN KEY (employee_id) REFERENCES employees(employee_id) ON DELETE CASCADE
     )`);
 
+    // Create login_history table to store all employee login details
+    await dbOperations.run(`CREATE TABLE IF NOT EXISTS login_history (
+      login_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employee_id INTEGER,
+      employee_name TEXT,
+      employee_email TEXT,
+      role TEXT,
+      login_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+      ip_address TEXT,
+      device_info TEXT,
+      user_agent TEXT,
+      status TEXT DEFAULT 'Success',
+      FOREIGN KEY (employee_id) REFERENCES employees(employee_id) ON DELETE CASCADE
+    )`);
+
     // Insert sample holidays if table is empty
     const holidayCheck = await dbOperations.get("SELECT COUNT(*) as count FROM holidays");
     if (holidayCheck.count === 0) {
@@ -243,7 +258,7 @@ async function initializeDatabase() {
       await dbOperations.run('ALTER TABLE salary ADD COLUMN working_time TEXT DEFAULT "0 Hours 0 Minutes 0 Seconds"');
     }
 
-    // Add active_token column to employees if it doesn't exist (migration)
+    // Add active_token and status columns to employees if they don't exist (migration)
     const employeesColumns = await dbOperations.query("PRAGMA table_info(employees)");
     const employeesColumnNames = employeesColumns.map(col => col.name);
     if (!employeesColumnNames.includes('active_token')) {
@@ -254,6 +269,9 @@ async function initializeDatabase() {
     }
     if (!employeesColumnNames.includes('last_activity')) {
       await dbOperations.run('ALTER TABLE employees ADD COLUMN last_activity DATETIME DEFAULT NULL');
+    }
+    if (!employeesColumnNames.includes('last_login')) {
+      await dbOperations.run('ALTER TABLE employees ADD COLUMN last_login DATETIME DEFAULT NULL');
     }
     if (!employeesColumnNames.includes('profile_photo')) {
       await dbOperations.run('ALTER TABLE employees ADD COLUMN profile_photo TEXT DEFAULT NULL');
@@ -268,6 +286,8 @@ async function initializeDatabase() {
     // Initialize database indexes for maximum read performance
     await dbOperations.run('CREATE INDEX IF NOT EXISTS idx_attendance_employee ON attendance(employee_id)');
     await dbOperations.run('CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance(attendance_date)');
+    await dbOperations.run('CREATE INDEX IF NOT EXISTS idx_login_history_employee ON login_history(employee_id)');
+    await dbOperations.run('CREATE INDEX IF NOT EXISTS idx_login_history_time ON login_history(login_time)');
     await dbOperations.run('CREATE INDEX IF NOT EXISTS idx_leaves_employee ON leaves(employee_id)');
     await dbOperations.run('CREATE INDEX IF NOT EXISTS idx_leaves_status ON leaves(status)');
     await dbOperations.run('CREATE INDEX IF NOT EXISTS idx_tasks_employee ON tasks(employee_id)');

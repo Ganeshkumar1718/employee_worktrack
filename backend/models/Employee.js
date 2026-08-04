@@ -21,8 +21,15 @@ class Employee {
   }
 
   static async getAll() {
-    const rows = await db.query('SELECT employee_id, employee_name, employee_email, department, designation, annual_package, hourly_rate, role, profile_photo, status, last_activity, created_at FROM employees');
+    const rows = await db.query('SELECT employee_id, employee_name, employee_email, department, designation, annual_package, hourly_rate, role, profile_photo, status, last_login, last_activity, created_at FROM employees');
     return rows;
+  }
+
+  static async recordLogin(id, loginTime = new Date().toISOString()) {
+    await db.run(
+      'UPDATE employees SET last_login = ?, last_activity = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE employee_id = ?',
+      [loginTime, loginTime, 'Active', id]
+    );
   }
 
   static async update(id, employeeData) {

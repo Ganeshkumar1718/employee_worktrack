@@ -18,4 +18,7 @@ router.get('/profile', authMiddleware, authController.getProfile);
 // Update Profile (protected)
 router.put('/profile', authMiddleware, authController.updateProfile);
 
+// Get Login History (protected)
+router.get('/login-history', authMiddleware, authController.getLoginHistory);
+
 module.exports = router;
